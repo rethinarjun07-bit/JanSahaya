@@ -80,23 +80,21 @@ export default function AiReportingPage() {
 
   // === Voice Recording ===
   const startRecording = () => {
-    const SpeechRecognition =
-      (window as Window & typeof globalThis & { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ||
-      (window as Window & typeof globalThis & { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
+    if (!SR) {
       alert("Voice recognition is not supported in this browser. Please use Chrome.");
       return;
     }
     sound.playClick();
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.lang = selectedLang;
     recognition.continuous = false;
     recognition.interimResults = true;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const text = Array.from(event.results)
-        .map((r) => r[0].transcript)
+        .map((r) => (r as SpeechRecognitionResult)[0].transcript)
         .join(" ");
       setTranscript(text);
     };

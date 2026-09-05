@@ -48,4 +48,12 @@ __pycache__/
 *$py.class
 
 # IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Extracted archives
+jansamadhan-sih26043-master/
+
 .vscode/

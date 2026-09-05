@@ -107,9 +107,8 @@ function LoginLandingInner() {
               <Link
                 key={role.key}
                 href={role.href}
-                className={`group relative flex flex-col p-6 rounded-3xl border-2 bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
-                  isHighlighted ? "border-gov-saffron ring-2 ring-gov-saffron/30" : "border-slate-200 hover:border-slate-300"
-                }`}
+                className={`group relative flex flex-col p-6 rounded-3xl border-2 bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${isHighlighted ? "border-gov-saffron ring-2 ring-gov-saffron/30" : "border-slate-200 hover:border-slate-300"
+                  }`}
               >
                 {isHighlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gov-saffron text-white text-[10px] font-bold uppercase tracking-wider">

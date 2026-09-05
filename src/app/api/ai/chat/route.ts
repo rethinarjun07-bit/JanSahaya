@@ -130,8 +130,11 @@ The user is on JanSahaya — a disaster management & societal innovation platfor
 Tailor your answers to what seems most relevant to their role and question.`;
 
 export async function POST(request: NextRequest) {
+  let message = "";
   try {
-    const { message, history, userRole } = await request.json();
+    const body = await request.json();
+    message = body.message ?? "";
+    const { history, userRole } = body;
 
     if (!message?.trim()) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
@@ -214,7 +217,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      reply: getDemoResponse(message),
+      reply: getDemoResponse(message || ""),
       isDemo: true,
     });
   }

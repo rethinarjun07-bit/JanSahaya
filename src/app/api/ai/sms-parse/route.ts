@@ -59,11 +59,11 @@ export async function POST(request: NextRequest) {
         district: parsed.district,
         state: "Jharkhand",
         status: "SUBMITTED",
-        reporterId: reporterUser.id,
+        createdById: reporterUser.id,
         latitude: DISTRICT_COORDS[parsed.district]?.[0] || 23.6102,
         longitude: DISTRICT_COORDS[parsed.district]?.[1] || 85.2799,
         address: `${parsed.district} District, Jharkhand`,
-        tags: JSON.stringify(["sms-report", "auto-parsed", "needs-verification"]),
+        aiTags: JSON.stringify(["sms-report", "auto-parsed", "needs-verification"]),
       },
     });
 

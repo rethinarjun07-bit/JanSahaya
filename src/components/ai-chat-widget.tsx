@@ -160,7 +160,7 @@ export default function AIChatWidget() {
 
     recognition.onresult = (e: SpeechRecognitionEvent) => {
       const transcript = Array.from(e.results)
-        .map((r) => r[0].transcript)
+        .map((r) => (r as SpeechRecognitionResult)[0].transcript)
         .join("");
       setInput(transcript);
     };
