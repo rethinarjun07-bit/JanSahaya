@@ -43,13 +43,13 @@ async function verifyJWT(token: string): Promise<Record<string, unknown> | null>
 }
 
 // ---------------------------------------------------------------------------
-// Route access rules: path prefix → required roles
+// Route access rules: path prefix → required roles + dedicated login page
 // ---------------------------------------------------------------------------
-const PROTECTED_PAGE_ROUTES: Array<{ prefix: string; roles: string[]; label: string }> = [
-  { prefix: "/admin",            roles: ["ADMIN"],                          label: "ADMIN" },
-  { prefix: "/solver/dashboard", roles: ["SOLVER", "ADMIN"],                label: "SOLVER" },
-  { prefix: "/solver/profile",   roles: ["SOLVER", "ADMIN"],                label: "SOLVER" },
-  { prefix: "/industry",         roles: ["INDUSTRY", "ADMIN"],              label: "INDUSTRY" },
+const PROTECTED_PAGE_ROUTES: Array<{ prefix: string; roles: string[]; label: string; loginPath: string }> = [
+  { prefix: "/admin",            roles: ["ADMIN"],              label: "ADMIN",    loginPath: "/login/admin" },
+  { prefix: "/solver/dashboard", roles: ["SOLVER", "ADMIN"],   label: "SOLVER",   loginPath: "/login/solver" },
+  { prefix: "/solver/profile",   roles: ["SOLVER", "ADMIN"],   label: "SOLVER",   loginPath: "/login/solver" },
+  { prefix: "/industry",         roles: ["INDUSTRY", "ADMIN"], label: "INDUSTRY", loginPath: "/login/industry" },
 ];
 
 // Routes that require any authenticated session (any role)
@@ -119,17 +119,16 @@ export async function middleware(request: NextRequest) {
     const token = extractToken(request);
 
     if (!token) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("required", matchedRoute.label);
+      // Redirect to the role-specific login portal
+      const loginUrl = new URL(matchedRoute.loginPath, request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
     }
 
     const payload = await verifyJWT(token);
     if (!payload) {
-      // Token is invalid/expired — clear cookies and redirect to login
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("required", matchedRoute.label);
+      // Token is invalid/expired — clear cookies and redirect to role-specific login
+      const loginUrl = new URL(matchedRoute.loginPath, request.url);
       loginUrl.searchParams.set("expired", "1");
       const res = NextResponse.redirect(loginUrl);
       res.cookies.delete("jansahaya_token");
@@ -139,9 +138,8 @@ export async function middleware(request: NextRequest) {
 
     const userRole = payload.role as string;
     if (!matchedRoute.roles.includes(userRole)) {
-      // User is logged in but doesn't have the required role
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("required", matchedRoute.label);
+      // User is logged in but doesn't have the required role — send to correct portal
+      const loginUrl = new URL(matchedRoute.loginPath, request.url);
       loginUrl.searchParams.set("unauthorized", "1");
       loginUrl.searchParams.set("currentRole", userRole);
       return NextResponse.redirect(loginUrl);
@@ -153,7 +151,7 @@ export async function middleware(request: NextRequest) {
   if (needsAuth) {
     const token = extractToken(request);
     if (!token || !(await verifyJWT(token))) {
-      const loginUrl = new URL("/login", request.url);
+      const loginUrl = new URL("/login/citizen", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
     }
