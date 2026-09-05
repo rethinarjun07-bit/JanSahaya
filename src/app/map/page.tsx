@@ -1,11 +1,29 @@
+// Tell Next.js this page is always dynamically rendered (no static caching)
+export const dynamic = "force-dynamic";
+
 import React from "react";
 import Link from "next/link";
+import createDynamicComponent from "next/dynamic";
 import { ShieldAlert, Flame, MapPin, ArrowLeft, Layers, Sparkles } from "lucide-react";
 import db from "@/lib/db";
-import LeafletMap from "@/components/leaflet-map";
 import { PagePop, PopItem } from "@/components/page-pop-transition";
 
-export const dynamic = "force-dynamic";
+// Leaflet MUST be loaded client-side only — it accesses DOM APIs (offsetWidth)
+// during initialization which are not available during SSR/streaming.
+const LeafletMap = createDynamicComponent(() => import("@/components/leaflet-map"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="w-full rounded-3xl bg-slate-100 border border-slate-200 flex items-center justify-center animate-pulse"
+      style={{ height: "680px" }}
+    >
+      <div className="text-center text-slate-400">
+        <MapPin className="w-10 h-10 mx-auto mb-2 opacity-50" />
+        <p className="text-sm font-semibold">Loading GIS Map...</p>
+      </div>
+    </div>
+  ),
+});
 
 export default async function FullScreenMapPage() {
   const challenges = await db.challenge.findMany({
