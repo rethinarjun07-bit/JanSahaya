@@ -88,6 +88,9 @@ interface ParsedSMS {
 }
 
 async function geminiParser(smsText: string): Promise<ParsedSMS> {
+  const apiKey = (process.env.GEMINI_API_KEY || "").replace(/^["']|["']$/g, "").trim();
+  const client = new GoogleGenAI({ apiKey });
+
   const prompt = `Parse this disaster SMS report and return JSON only.
 
 SMS: "${smsText}"
@@ -102,8 +105,8 @@ Rules:
 Return valid JSON:
 {"category":"...","district":"...","severity":"...","title":"...","language":"..."}`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.6-flash",
+  const response = await client.models.generateContent({
+    model: "gemini-3.7-flash",
     contents: prompt,
     config: { responseMimeType: "application/json", maxOutputTokens: 200 },
   });

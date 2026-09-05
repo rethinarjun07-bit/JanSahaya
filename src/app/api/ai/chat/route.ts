@@ -144,7 +144,8 @@ export async function POST(request: NextRequest) {
 
     const fullSystemPrompt = SYSTEM_PROMPT + roleContext;
 
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.includes("Demo-Replace")) {
+    const apiKey = (process.env.GEMINI_API_KEY || "").replace(/^["']|["']$/g, "").trim();
+    if (!apiKey || apiKey.includes("Demo-Replace")) {
       return NextResponse.json({
         reply: getDemoResponse(message),
         isDemo: true,
@@ -161,19 +162,39 @@ export async function POST(request: NextRequest) {
       { role: "user" as const, parts: [{ text: message }] },
     ];
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents,
-      config: {
-        systemInstruction: fullSystemPrompt,
-        maxOutputTokens: 1000,
-        temperature: 0.6,
-        topP: 0.9,
-        topK: 40,
-      },
-    });
+    const ai = new GoogleGenAI({ apiKey });
 
-    const reply = response.text || "I couldn't generate a response. Please try again.";
+    let reply = "";
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.7-flash",
+        contents,
+        config: {
+          systemInstruction: fullSystemPrompt,
+          maxOutputTokens: 1000,
+          temperature: 0.6,
+          topP: 0.9,
+          topK: 40,
+        },
+      });
+      reply = response.text || "";
+    } catch (modelErr) {
+      console.warn("gemini-3.7-flash failed, falling back to gemini-flash-latest:", modelErr);
+      const fallbackRes = await ai.models.generateContent({
+        model: "gemini-flash-latest",
+        contents,
+        config: {
+          systemInstruction: fullSystemPrompt,
+          maxOutputTokens: 1000,
+          temperature: 0.6,
+        },
+      });
+      reply = fallbackRes.text || "";
+    }
+
+    if (!reply) {
+      reply = getDemoResponse(message);
+    }
 
     // Detect language from user message for the UI
     const isHindi = /[\u0900-\u097F]/.test(message);

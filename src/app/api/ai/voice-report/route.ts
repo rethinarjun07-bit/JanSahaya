@@ -35,8 +35,11 @@ Extract structured disaster report information and respond in JSON:
 
 Be generous — if they mention water/rain/flooding → Flood & Inundation. Mining/coal/fire underground → Mining Subsidence.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+    const apiKey = (process.env.GEMINI_API_KEY || "").replace(/^["']|["']$/g, "").trim();
+    const client = new GoogleGenAI({ apiKey });
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.7-flash",
       contents: prompt,
       config: { responseMimeType: "application/json", maxOutputTokens: 400 },
     });
