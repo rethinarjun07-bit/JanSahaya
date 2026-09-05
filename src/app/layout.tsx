@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans } from "next/font/google";
 import "./globals.css";
+import createDynamicComponent from "next/dynamic";
 import { LanguageProvider } from "@/components/language-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ClickEffectProvider } from "@/components/click-effect";
+
+// Chat widget is client-only (uses browser APIs)
+const AIChatWidget = createDynamicComponent(() => import("@/components/ai-chat-widget"), { ssr: false });
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const notoSans = Noto_Sans({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-noto" });
@@ -42,6 +46,7 @@ export default function RootLayout({
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
+            <AIChatWidget />
           </AuthProvider>
         </LanguageProvider>
       </body>

@@ -23,6 +23,7 @@ import {
   Zap,
   FileText,
   GitMerge,
+  Mic,
 } from "lucide-react";
 import { useLanguage } from "./language-provider";
 import { useAuth } from "@/context/auth-context";
@@ -82,6 +83,7 @@ export function Navbar() {
     { href: "/",               label: t("navHome"),       icon: ShieldAlert, roles: null },
     { href: "/challenges",     label: t("navChallenges"), icon: Flame,       roles: null },
     { href: "/map",            label: t("navMap"),        icon: MapPin,      roles: null },
+    { href: "/ai-report",      label: "AI Report",        icon: Mic,         roles: null, badge: "NEW" },
     { href: "/analytics",      label: t("navAnalytics"),  icon: BarChart3,   roles: null },
     { href: "/solver/dashboard", label: t("navSolver"),   icon: Zap,         roles: ["SOLVER", "ADMIN"] },
     { href: "/industry",       label: t("navIndustry"),   icon: Building2,   roles: ["INDUSTRY", "ADMIN"] },
