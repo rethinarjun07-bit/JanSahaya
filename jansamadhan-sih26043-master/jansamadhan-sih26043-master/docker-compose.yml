@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: jansahaya-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jansamadhan
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jansamadhan"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Python (FastAPI) Backend & AI Services
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: jansahaya-fastapi
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/jansamadhan
+      JWT_SECRET: jansamadhan-super-secret-jwt-key-sih-2024-gov-jharkhand
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./backend:/app/backend
+      - ./public/uploads:/app/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 3. React Frontend (Next.js)
+  frontend:
+    image: node:20-alpine
+    container_name: jansahaya-react
+    restart: always
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      FASTAPI_BACKEND_URL: http://backend:8000
+      PORT: "3000"
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

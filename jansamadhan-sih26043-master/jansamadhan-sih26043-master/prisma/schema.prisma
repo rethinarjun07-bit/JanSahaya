@@ -1,0 +1,216 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  password        String
+  name            String
+  role            String           @default("CITIZEN") // CITIZEN, SOLVER, INDUSTRY, ADMIN
+  avatar          String?
+  organization    String?
+  designation     String?
+  phone           String?
+  district        String?
+  state           String?
+  bio             String?
+  skills          String?          // JSON array of strings
+  karmaPoints     Int              @default(100)
+  badges          String?          // JSON array of badge objects
+  isVerified      Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  challenges      Challenge[]      @relation("CreatedChallenges")
+  solutions       Solution[]       @relation("CreatedSolutions")
+  reviews         Review[]
+  comments        Comment[]
+  upvotes         Upvote[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+}
+
+model Challenge {
+  id                      String           @id @default(cuid())
+  title                   String
+  description             String
+  category                String           // Disaster Management, Water & Sanitation, Mining & Geology, Infrastructure, etc.
+  severity                String           @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  urgencyScore            Int              @default(50) // 1-100
+  status                  String           @default("SUBMITTED") // SUBMITTED, VERIFIED, ASSIGNED, IN_PROGRESS, SOLVED, REJECTED, MERGED
+  latitude                Float
+  longitude               Float
+  address                 String
+  district                String
+  state                   String
+  pincode                 String?
+  mediaUrls               String?          // JSON array of strings
+  audioUrl                String?
+  voiceTranscript         String?
+  language                String           @default("en")
+  masterChallengeId       String?
+  isMaster                Boolean          @default(false)
+  duplicateScore          Float?
+  aiTags                  String?          // JSON array of strings
+  predictedSector         String?
+  autoAssignedUniversity  String?
+  officialNotes           String?
+  verifiedAt              DateTime?
+  verifiedById            String?
+  assignedUniversityId    String?
+  assignedDepartment      String?
+  viewCount               Int              @default(0)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+
+  createdById             String
+  createdBy               User             @relation("CreatedChallenges", fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Self relation for duplicate merging
+  masterChallenge         Challenge?       @relation("DuplicateHierarchy", fields: [masterChallengeId], references: [id])
+  duplicates              Challenge[]      @relation("DuplicateHierarchy")
+
+  solutions               Solution[]
+  upvotes                 Upvote[]
+  comments                Comment[]
+}
+
+model DuplicateMerge {
+  id                     String           @id @default(cuid())
+  masterChallengeId      String
+  duplicateChallengeId   String
+  similarityScore        Float
+  reason                 String
+  mergedById             String
+  mergedAt               DateTime         @default(now())
+}
+
+model Solution {
+  id                String           @id @default(cuid())
+  challengeId       String
+  challenge         Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  authorId          String
+  author            User             @relation("CreatedSolutions", fields: [authorId], references: [id], onDelete: Cascade)
+
+  teamName          String?
+  title             String
+  abstract          String
+  methodology       String
+  techStack         String?          // JSON array of strings
+  budgetEstimate    Float?
+  timelineMonths    Int?
+  prototypeUrl      String?
+  mediaUrls         String?          // JSON array of strings
+  status            String           @default("PROPOSED") // DRAFT, PROPOSED, MENTOR_REVIEW, PILOT_DEPLOYED, GOVT_VERIFIED, DEPLOYED
+  milestoneStage    String           @default("Phase 1: Conceptualization")
+  govtEndorsed      Boolean          @default(false)
+  endorsedBy        String?
+  endorsedAt        DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  milestones        Milestone[]
+  reviews           Review[]
+  upvotes           Upvote[]
+  comments          Comment[]
+}
+
+model Milestone {
+  id             String           @id @default(cuid())
+  solutionId     String
+  solution       Solution         @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  order          Int
+  title          String
+  description    String
+  targetDate     DateTime?
+  status         String           @default("PENDING") // PENDING, SUBMITTED, APPROVED, REJECTED
+  proofUrl       String?
+  notes          String?
+  updatedAt      DateTime         @updatedAt
+}
+
+model Review {
+  id                 String           @id @default(cuid())
+  solutionId         String
+  solution           Solution         @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  reviewerId         String
+  reviewer           User             @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  role               String           // MENTOR, INDUSTRY, GOVT_NODAL
+  rating             Float            // 1 to 5
+  feasibilityScore   Float            @default(4.0)
+  impactScore        Float            @default(4.0)
+  costEffectiveness  Float            @default(4.0)
+  scalabilityScore   Float            @default(4.0)
+  feedback           String
+  createdAt          DateTime         @default(now())
+}
+
+model Upvote {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId    String?
+  challenge      Challenge?       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  solutionId     String?
+  solution       Solution?        @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+
+  @@unique([userId, challengeId])
+  @@unique([userId, solutionId])
+}
+
+model Comment {
+  id             String           @id @default(cuid())
+  content        String
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId    String?
+  challenge      Challenge?       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  solutionId     String?
+  solution       Solution?        @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  audioUrl       String?
+  createdAt      DateTime         @default(now())
+}
+
+model University {
+  id                  String           @id @default(cuid())
+  name                String
+  code                String           @unique
+  state               String
+  district            String
+  departments         String           // JSON array of strings
+  expertiseTags       String           // JSON array of strings
+  nodalOfficerName    String
+  nodalOfficerEmail   String
+  logoUrl             String?
+}
+
+model Notification {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  message        String
+  type           String           @default("INFO") // INFO, SUCCESS, WARNING, BADGE_EARNED, DUPLICATE_ALERT
+  link           String?
+  isRead         Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+}
+
+model AuditLog {
+  id             String           @id @default(cuid())
+  action         String
+  entityType     String
+  entityId       String
+  actorId        String
+  user           User             @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  actorName      String
+  details        String?          // JSON
+  createdAt      DateTime         @default(now())
+}
