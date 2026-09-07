@@ -4,6 +4,7 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldAlert, LogIn, Lock, AlertTriangle, CheckCircle2, KeyRound } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { sound } from "@/lib/sound";
 
 function AdminLoginInner() {
@@ -51,10 +52,19 @@ function AdminLoginInner() {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 bg-slate-900">
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-3xl shadow-2xl overflow-hidden border border-slate-700">
-
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-3xl shadow-2xl overflow-hidden border border-slate-700"
+      >
         {/* Left — Security Identity Panel */}
-        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-8 text-white flex flex-col justify-between border-r border-slate-700">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+          className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-8 text-white flex flex-col justify-between border-r border-slate-700"
+        >
           <div>
             {/* Restricted badge */}
             <div className="flex items-center gap-2 mb-5">
@@ -64,9 +74,13 @@ function AdminLoginInner() {
               </span>
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mb-5">
+            <motion.div
+              whileHover={{ rotate: 8, scale: 1.08 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mb-5"
+            >
               <ShieldAlert className="w-7 h-7 text-amber-400" />
-            </div>
+            </motion.div>
 
             <div className="text-[11px] font-bold uppercase tracking-widest text-amber-400 mb-2">
               Government Authority Portal
@@ -80,32 +94,38 @@ function AdminLoginInner() {
 
             {/* Clearance info */}
             <div className="space-y-2 mb-6">
-              <div className="flex items-center gap-2 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-amber-500" />
-                <span className="text-slate-300">Verify &amp; certify ground challenges</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-amber-500" />
-                <span className="text-slate-300">Assign challenges to research institutes</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-amber-500" />
-                <span className="text-slate-300">Merge duplicate challenge records</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-amber-500" />
-                <span className="text-slate-300">View full audit trail &amp; logs</span>
-              </div>
+              {[
+                "Verify & certify ground challenges",
+                "Assign challenges to research institutes",
+                "Merge duplicate challenge records",
+                "View full audit trail & logs",
+              ].map((item, idx) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 + idx * 0.08 }}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-amber-500" />
+                  <span className="text-slate-300">{item}</span>
+                </motion.div>
+              ))}
             </div>
 
             {/* Legal notice */}
-            <div className="p-3 rounded-xl bg-red-950/40 border border-red-800/40 text-xs text-slate-400 leading-relaxed">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              className="p-3 rounded-xl bg-red-950/40 border border-red-800/40 text-xs text-slate-400 leading-relaxed"
+            >
               <div className="flex items-center gap-1.5 text-red-400 font-bold text-[10px] uppercase mb-1">
                 <Lock className="w-3 h-3" /> Statutory Notice
               </div>
               Unauthorized access to this system is an offence under Section 43 &amp; 66 of the
               Information Technology Act, 2000 and the Disaster Management Act, 2005.
-            </div>
+            </motion.div>
           </div>
 
           <div className="flex items-center gap-3 pt-4 border-t border-slate-700 text-[10px] text-slate-500 font-mono">
@@ -113,10 +133,15 @@ function AdminLoginInner() {
             <span>·</span>
             <span>Govt. of Jharkhand SDMA</span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right — Login Form */}
-        <div className="bg-slate-950 p-8 flex flex-col justify-center">
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+          className="bg-slate-950 p-8 flex flex-col justify-center"
+        >
           <div className="flex items-center gap-2 mb-1">
             <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
               <KeyRound className="w-4 h-4 text-amber-400" />
@@ -126,44 +151,76 @@ function AdminLoginInner() {
           <p className="text-xs text-slate-500 mb-5">Enter your official government credentials to authenticate.</p>
 
           {/* Clearance required / session context */}
-          {isExpired && (
-            <div className="p-3 rounded-xl bg-orange-950/40 border border-orange-700/40 text-orange-300 text-xs mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" /> Session expired. Please re-authenticate with your credentials.
-            </div>
-          )}
-          {isUnauthorized && currentRole && (
-            <div className="p-3 rounded-xl bg-red-950/40 border border-red-700/40 text-red-300 text-xs mb-4 flex items-center gap-2">
-              <Lock className="w-4 h-4 shrink-0" />
-              Your account role ({currentRole}) does not have ADMIN clearance.
-            </div>
-          )}
-          {error && (
-            <div className="p-3 rounded-xl bg-red-950/40 border border-red-700/40 text-red-300 text-xs font-semibold mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {error}
-            </div>
-          )}
+          <AnimatePresence>
+            {isExpired && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                className="p-3 rounded-xl bg-orange-950/40 border border-orange-700/40 text-orange-300 text-xs mb-4 flex items-center gap-2 overflow-hidden"
+              >
+                <AlertTriangle className="w-4 h-4 shrink-0" /> Session expired. Please re-authenticate with your credentials.
+              </motion.div>
+            )}
+            {isUnauthorized && currentRole && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                className="p-3 rounded-xl bg-red-950/40 border border-red-700/40 text-red-300 text-xs mb-4 flex items-center gap-2 overflow-hidden"
+              >
+                <Lock className="w-4 h-4 shrink-0" />
+                Your account role ({currentRole}) does not have ADMIN clearance.
+              </motion.div>
+            )}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                className="p-3 rounded-xl bg-red-950/40 border border-red-700/40 text-red-300 text-xs font-semibold mb-4 flex items-center gap-2 overflow-hidden"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 mb-1">Official Email Address</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="officer@jharkhand.gov.in"
-                className="w-full text-sm p-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-amber-500 focus:outline-none focus:border-amber-500" />
+                className="w-full text-sm p-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-amber-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs font-semibold text-slate-400">Password</label>
                 <span className="text-[10px] text-amber-600 font-mono">Demo: Admin@123</span>
               </div>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full text-sm p-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-amber-500 focus:outline-none focus:border-amber-500" />
+                className="w-full text-sm p-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-amber-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
             </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
               <LogIn className="w-4 h-4" />
               {loading ? "Verifying Official Credentials..." : "Sign In as Government Authority"}
-            </button>
+            </motion.button>
           </form>
 
           {/* No self-registration for admin */}
@@ -177,8 +234,8 @@ function AdminLoginInner() {
               ← Return to portal selection
             </Link>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

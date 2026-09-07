@@ -3,7 +3,8 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Users, LogIn, ArrowRight, MapPin, Flame, AlertTriangle, Lock } from "lucide-react";
+import { Users, LogIn, ArrowRight, MapPin, Flame, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { sound } from "@/lib/sound";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -66,14 +67,27 @@ function CitizenLoginInner() {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 bg-slate-50">
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-3xl shadow-xl overflow-hidden border border-slate-200 bg-white">
-
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-3xl shadow-xl overflow-hidden border border-slate-200 bg-white"
+      >
         {/* Left — Identity Panel */}
-        <div className="bg-gradient-to-br from-emerald-700 via-teal-800 to-slate-900 p-8 text-white flex flex-col justify-between">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+          className="bg-gradient-to-br from-emerald-700 via-teal-800 to-slate-900 p-8 text-white flex flex-col justify-between"
+        >
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mb-5 shadow-lg">
+            <motion.div
+              whileHover={{ rotate: 8, scale: 1.08 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mb-5 shadow-lg"
+            >
               <Users className="w-7 h-7 text-emerald-300" />
-            </div>
+            </motion.div>
             <div className="text-[11px] font-bold uppercase tracking-widest text-emerald-300 mb-2">Citizen Portal</div>
             <h1 className="text-2xl sm:text-3xl font-extrabold font-serif mb-3 leading-tight">
               Voice of the Community
@@ -83,29 +97,57 @@ function CitizenLoginInner() {
             </p>
 
             <div className="space-y-3 text-xs text-slate-300">
-              <div className="flex items-center gap-2"><Flame className="w-4 h-4 text-emerald-400" /> Report disasters in real-time</div>
-              <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-emerald-400" /> Geo-tagged challenge submission</div>
-              <div className="flex items-center gap-2"><ArrowRight className="w-4 h-4 text-emerald-400" /> Track your reports &amp; earn karma</div>
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25 }}
+                className="flex items-center gap-2"
+              >
+                <Flame className="w-4 h-4 text-emerald-400" /> Report disasters in real-time
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35 }}
+                className="flex items-center gap-2"
+              >
+                <MapPin className="w-4 h-4 text-emerald-400" /> Geo-tagged challenge submission
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.45 }}
+                className="flex items-center gap-2"
+              >
+                <ArrowRight className="w-4 h-4 text-emerald-400" /> Track your reports &amp; earn karma
+              </motion.div>
             </div>
 
             {DEMO_MODE && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={handleDemo}
                 disabled={loading}
                 className="mt-7 w-full py-2.5 px-4 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold transition-all flex items-center justify-between"
               >
                 <span>👤 Demo: Try as Priya Sharma (Ranchi)</span>
                 <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              </motion.button>
             )}
           </div>
           <div className="text-[10px] text-slate-400 pt-5 border-t border-white/10">
             Govt. of Jharkhand · SDMA · SIH26043
           </div>
-        </div>
+        </motion.div>
 
         {/* Right — Login Form */}
-        <div className="p-8 flex flex-col justify-center">
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+          className="p-8 flex flex-col justify-center"
+        >
           <div className="flex items-center gap-2 mb-1">
             <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center">
               <Users className="w-4 h-4 text-emerald-700" />
@@ -114,41 +156,70 @@ function CitizenLoginInner() {
           </div>
           <p className="text-xs text-slate-500 mb-5">Sign in to report and track community challenges.</p>
 
-          {isExpired && (
-            <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-xs mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" /> Your session expired. Please sign in again.
-            </div>
-          )}
-          {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold mb-4">{error}</div>
-          )}
+          <AnimatePresence>
+            {isExpired && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-xs mb-4 flex items-center gap-2 overflow-hidden"
+              >
+                <AlertTriangle className="w-4 h-4 shrink-0" /> Your session expired. Please sign in again.
+              </motion.div>
+            )}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold mb-4 overflow-hidden"
+              >
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="priya.sharma@gmail.com"
-                className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+                className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-shadow"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Password</label>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+                className="w-full text-sm p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-shadow"
+              />
             </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-sm rounded-xl shadow transition-all flex items-center justify-center gap-2">
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-sm rounded-xl shadow transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
               <LogIn className="w-4 h-4" />
               {loading ? "Signing in..." : "Sign In as Citizen"}
-            </button>
+            </motion.button>
           </form>
 
           <div className="flex items-center justify-between mt-5 text-xs text-slate-500">
             <Link href="/register" className="font-bold text-emerald-700 hover:underline">Create account →</Link>
-            <Link href="/login" className="text-slate-400 hover:text-slate-600">← All portals</Link>
+            <Link href="/login" className="text-slate-400 hover:text-slate-600 transition-colors">← All portals</Link>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
