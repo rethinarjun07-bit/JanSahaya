@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const JWT_SECRET = process.env.JWT_SECRET || "jansamadhan-super-secret-jwt-key-sih-2024-gov-jharkhand-change-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET || "jansahaya-super-secret-jwt-key-sih-2024-gov-jharkhand-change-in-prod";
 
 // ---------------------------------------------------------------------------
 // Edge-compatible HMAC-SHA256 JWT verification
@@ -61,7 +61,6 @@ const AUTH_REQUIRED_ROUTES = ["/challenges/new"];
 function extractToken(request: NextRequest): string | null {
   return (
     request.cookies.get("jansahaya_token")?.value ||
-    request.cookies.get("jansamadhan_token")?.value ||
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
     null
   );
@@ -132,7 +131,6 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set("expired", "1");
       const res = NextResponse.redirect(loginUrl);
       res.cookies.delete("jansahaya_token");
-      res.cookies.delete("jansamadhan_token");
       return res;
     }
 

@@ -96,7 +96,6 @@ export async function POST(request: Request) {
       token,
     });
 
-    response.cookies.set("jansamadhan_token", token, COOKIE_OPTIONS);
     response.cookies.set("jansahaya_token", token, COOKIE_OPTIONS);
 
     return response;

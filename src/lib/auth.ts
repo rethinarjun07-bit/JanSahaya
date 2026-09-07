@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import db from "./db";
 
-const JWT_SECRET = process.env.JWT_SECRET || "jansamadhan-super-secret-jwt-key-sih-2024-gov-jharkhand";
+const JWT_SECRET = process.env.JWT_SECRET || "jansahaya-super-secret-jwt-key-sih-2024-gov-jharkhand";
 
 export interface TokenPayload {
   userId: string;
@@ -38,7 +38,7 @@ export function decodeToken(token: string): TokenPayload | null {
 export async function getCurrentUser(): Promise<TokenPayload | null> {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("jansahaya_token")?.value || cookieStore.get("jansamadhan_token")?.value;
+    const token = cookieStore.get("jansahaya_token")?.value;
     if (!token) return null;
     return decodeToken(token);
   } catch {
@@ -59,7 +59,7 @@ export async function getUserFromRequest(request: Request): Promise<TokenPayload
     // 2. Check cookies
     const cookieHeader = request.headers.get("cookie");
     if (cookieHeader) {
-      const match = cookieHeader.match(/(?:jansahaya_token|jansamadhan_token)=([^;]+)/);
+      const match = cookieHeader.match(/jansahaya_token=([^;]+)/);
       if (match && match[1]) {
         return decodeToken(match[1]);
       }

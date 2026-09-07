@@ -5,14 +5,14 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     PROJECT_NAME: str = "JanSahaya API & AI Services"
     API_V1_STR: str = "/api"
-    SECRET_KEY: str = os.getenv("JWT_SECRET", "jansamadhan-super-secret-jwt-key-sih-2024-gov-jharkhand")
+    SECRET_KEY: str = os.getenv("JWT_SECRET", "jansahaya-super-secret-jwt-key-sih-2024-gov-jharkhand")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     # Database: Default to PostgreSQL, with graceful SQLite fallback if PostgreSQL is unavailable
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
-        "postgresql://postgres:postgres@localhost:5432/jansamadhan"
+        "postgresql://postgres:postgres@localhost:5432/jansahaya"
     )
 
     # CORS origins

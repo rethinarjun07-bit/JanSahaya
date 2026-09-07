@@ -66,9 +66,7 @@ export async function POST(request: Request) {
       token,
     });
 
-    // Set HttpOnly cookies — tokens are NOT accessible from JS, reducing XSS attack surface
     response.cookies.set("jansahaya_token", token, COOKIE_OPTIONS);
-    response.cookies.set("jansamadhan_token", token, COOKIE_OPTIONS);
 
     return response;
   } catch (error: unknown) {

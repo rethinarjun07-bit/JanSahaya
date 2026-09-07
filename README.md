@@ -236,7 +236,7 @@ Run `npx tsx prisma/seed.ts` to populate:
 ## 🏗️ Project Architecture
 
 ```
-e:\jansamadhan\
+jansahaya/
 ├── prisma/
 │   ├── schema.prisma          SQLite schema (11 models)
 │   └── seed.ts               Comprehensive demo data seeder
@@ -316,7 +316,7 @@ e:\jansamadhan\
 ```env
 # .env
 DATABASE_URL="file:./dev.db"
-JWT_SECRET="jansamadhan-sih26043-secure-jwt-secret-key-2024"
+JWT_SECRET="jansahaya-sih26043-secure-jwt-secret-key-2024"
 NEXT_PUBLIC_APP_NAME="JanSahaya"
 NEXT_PUBLIC_APP_TAGLINE="India's Societal Innovation Portal"
 ```

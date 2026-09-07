@@ -9,13 +9,13 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: jansamadhan
+      POSTGRES_DB: jansahaya
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d jansamadhan"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jansahaya"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,8 +30,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/jansamadhan
-      JWT_SECRET: jansamadhan-super-secret-jwt-key-sih-2024-gov-jharkhand
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/jansahaya
+      JWT_SECRET: jansahaya-super-secret-jwt-key-sih-2024-gov-jharkhand
       PYTHONUNBUFFERED: "1"
     volumes:
       - ./backend:/app/backend

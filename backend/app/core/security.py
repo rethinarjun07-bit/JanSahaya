@@ -45,7 +45,7 @@ async def get_token_from_request(request: Request) -> Optional[str]:
         return auth_header[7:].strip()
     
     # 2. Check cookies
-    cookie_token = request.cookies.get("jansahaya_token") or request.cookies.get("jansamadhan_token")
+    cookie_token = request.cookies.get("jansahaya_token")
     if cookie_token:
         return cookie_token
 

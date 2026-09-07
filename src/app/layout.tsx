@@ -20,7 +20,6 @@ export const metadata: Metadata = {
     "Crowdsourcing societal and disaster-related challenges across Indian districts and facilitating collaborative problem-solving through universities, researchers, and industry partnerships (SIH26043 - Govt. of Jharkhand).",
   keywords: [
     "JanSahaya",
-    "JanSamadhan",
     "Smart India Hackathon",
     "SIH26043",
     "Disaster Management Jharkhand",

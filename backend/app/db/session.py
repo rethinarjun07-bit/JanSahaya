@@ -47,8 +47,8 @@ try:
         pass
     logger.info(f"Connected to database: {db_url.split('@')[-1] if '@' in db_url else db_url}")
 except Exception as e:
-    logger.warning(f"Could not connect to {db_url} ({e}). Falling back to local SQLite 'sqlite:///./jansamadhan.db' for seamless development.")
-    fallback_url = "sqlite:///./jansamadhan.db"
+    logger.warning(f"Could not connect to {db_url} ({e}). Falling back to local SQLite 'sqlite:///./jansahaya.db' for seamless development.")
+    fallback_url = "sqlite:///./jansahaya.db"
     engine = create_engine(fallback_url, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

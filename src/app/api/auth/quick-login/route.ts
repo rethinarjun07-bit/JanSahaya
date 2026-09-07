@@ -82,7 +82,6 @@ export async function POST(request: Request) {
     });
 
     response.cookies.set("jansahaya_token", token, COOKIE_OPTIONS);
-    response.cookies.set("jansamadhan_token", token, COOKIE_OPTIONS);
 
     return response;
   } catch (error: unknown) {

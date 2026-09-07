@@ -7,10 +7,5 @@ export async function POST() {
     path: "/",
     maxAge: 0,
   });
-  response.cookies.set("jansamadhan_token", "", {
-    httpOnly: false,
-    path: "/",
-    maxAge: 0,
-  });
   return response;
 }

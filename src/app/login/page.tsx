@@ -112,7 +112,7 @@ function LoginLandingInner() {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gov-navy/10 border border-gov-navy/20 text-gov-navy text-xs font-bold mb-4"
           >
             <Flame className="w-3.5 h-3.5 text-gov-saffron" />
-            JanSamadhan — National Disaster Mitigation Portal
+            JanSahaya — National Disaster Mitigation Portal
           </motion.div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-serif mb-3">
             Select Your Portal

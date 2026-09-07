@@ -57,15 +57,6 @@ def set_auth_cookie(response: Response, token: str):
         path="/",
         samesite="lax",
     )
-    # Also set legacy name for complete compatibility
-    response.set_cookie(
-        key="jansamadhan_token",
-        value=token,
-        httponly=True,
-        max_age=60 * 60 * 24 * 7,
-        path="/",
-        samesite="lax",
-    )
 
 @router.post("/login")
 def login(req: LoginRequest, response: Response, db: Session = Depends(get_db)):
@@ -141,7 +132,6 @@ def get_me(current_user: Optional[User] = Depends(get_current_user_optional)):
 @router.post("/logout")
 def logout(response: Response):
     response.delete_cookie("jansahaya_token", path="/")
-    response.delete_cookie("jansamadhan_token", path="/")
     return {"message": "Logged out successfully"}
 
 @router.post("/demo-switch")

@@ -71,7 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Also trigger sound effect if available
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("jansahaya-role-switched", { detail: { role: data.user.role } }));
-          window.dispatchEvent(new CustomEvent("jansamadhan-role-switched", { detail: { role: data.user.role } }));
         }
       } else {
         const err = await res.json();

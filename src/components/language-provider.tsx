@@ -56,8 +56,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Initialize from storage on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const saved = (localStorage.getItem("jansahaya_lang") ||
-      localStorage.getItem("jansamadhan_lang")) as Language;
+    const saved = localStorage.getItem("jansahaya_lang") as Language;
 
     if (saved && (saved === "en" || saved === "hi" || saved === "ur")) {
       setLanguageState(saved);
@@ -150,7 +149,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(lang);
     if (typeof window !== "undefined") {
       localStorage.setItem("jansahaya_lang", lang);
-      localStorage.setItem("jansamadhan_lang", lang);
     }
   };
 
