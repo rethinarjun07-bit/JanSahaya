@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   ShieldAlert,
   Flame,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "./language-provider";
 import { PagePop, PopItem, PopCard } from "@/components/page-pop-transition";
+import { AnimatedCounter } from "@/components/animated-counter";
 
 interface FeaturedChallenge {
   id: string;
@@ -68,28 +70,36 @@ export function HomeClient({
               {language === "hi" ? "उच्च सतर्कता" : language === "ur" ? "اعلیٰ الرٹ" : "High Alert Triage"}
             </span>
           </div>
-          <div className="overflow-hidden whitespace-nowrap text-xs font-medium flex-1">
-            <span className="inline-block animate-marquee">{tickerText}</span>
+          <div className="overflow-hidden whitespace-nowrap text-xs font-medium flex-1 group/ticker cursor-pointer">
+            <span className="inline-block animate-marquee group-hover/ticker:[animation-play-state:paused]">{tickerText}</span>
           </div>
           <Link
             href="/map"
-            className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-slate-950 underline hover:text-white transition-colors shrink-0"
+            className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-slate-950 underline hover:text-white transition-colors shrink-0 group"
           >
             <span>{t("navMap")}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
       </PopItem>
 
       {/* 2. Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-gov-navy to-slate-900 text-white py-16 md:py-24 px-4 sm:px-6 lg:px-8">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/3 -right-32 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.12, 1], opacity: [0.15, 0.22, 0.15] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-1/3 -right-32 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"
+        />
 
         <div className="max-w-7xl mx-auto relative z-10 text-center">
           <PopItem delay={0.1}>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-amber-300 text-xs font-semibold mb-6 shadow-sm">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
               <span>{t("subtagline")}</span>
             </div>
           </PopItem>
@@ -107,57 +117,67 @@ export function HomeClient({
           </PopItem>
 
           <PopItem delay={0.25} className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-16">
-            <Link
-              href="/challenges/new"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-gov-saffron to-amber-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-            >
-              <Mic className="w-4 h-4" />
-              <span>{t("navPostChallenge")}</span>
-            </Link>
-            <Link
-              href="/challenges"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 font-bold text-sm transition-all flex items-center justify-center gap-2"
-            >
-              <Search className="w-4 h-4 text-slate-300" />
-              <span>
-                {t("navChallenges")} ({totalChallenges})
-              </span>
-            </Link>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+              <Link
+                href="/challenges/new"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-gov-saffron to-amber-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2 group"
+              >
+                <Mic className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span>{t("navPostChallenge")}</span>
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+              <Link
+                href="/challenges"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 font-bold text-sm transition-all flex items-center justify-center gap-2 group"
+              >
+                <Search className="w-4 h-4 text-slate-300 group-hover:scale-110 transition-transform" />
+                <span>
+                  {t("navChallenges")} ({totalChallenges})
+                </span>
+              </Link>
+            </motion.div>
           </PopItem>
 
           {/* Key Metrics Counter Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            <PopItem delay={0.28} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 p-4 sm:p-5 rounded-2xl text-left">
+            <PopItem delay={0.28} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                 {t("statsTotalChallenges")}
               </div>
-              <div className="text-3xl font-extrabold text-white">{totalChallenges}</div>
+              <div className="text-3xl font-extrabold text-white">
+                <AnimatedCounter value={totalChallenges} />
+              </div>
               <div className="text-[11px] text-amber-400 font-medium mt-1 flex items-center gap-1">
-                <Flame className="w-3 h-3 text-red-400" /> {criticalCount} {t("criticalBadge")}
+                <Flame className="w-3 h-3 text-red-400 animate-pulse" /> {criticalCount} {t("criticalBadge")}
               </div>
             </PopItem>
 
-            <PopItem delay={0.32} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 p-4 sm:p-5 rounded-2xl text-left">
+            <PopItem delay={0.32} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                 {t("statsActiveResolutions")}
               </div>
-              <div className="text-3xl font-extrabold text-white">{totalSolutions}</div>
+              <div className="text-3xl font-extrabold text-white">
+                <AnimatedCounter value={totalSolutions} />
+              </div>
               <div className="text-[11px] text-emerald-400 font-medium mt-1 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Pilot Deployed
               </div>
             </PopItem>
 
-            <PopItem delay={0.36} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 p-4 sm:p-5 rounded-2xl text-left">
+            <PopItem delay={0.36} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                 {language === "hi" ? "साझेदार शोधकर्ता" : language === "ur" ? "تحقیقی شراکت دار" : "Partnered Researchers"}
               </div>
-              <div className="text-3xl font-extrabold text-white">{totalSolvers}</div>
+              <div className="text-3xl font-extrabold text-white">
+                <AnimatedCounter value={totalSolvers} />
+              </div>
               <div className="text-[11px] text-blue-300 font-medium mt-1 flex items-center gap-1">
                 <Building2 className="w-3 h-3" /> BIT Mesra &bull; IIT ISM
               </div>
             </PopItem>
 
-            <PopItem delay={0.4} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 p-4 sm:p-5 rounded-2xl text-left">
+            <PopItem delay={0.4} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                 {t("statsPledgedFunds")}
               </div>
@@ -190,37 +210,61 @@ export function HomeClient({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 text-gov-navy flex items-center justify-center font-extrabold text-lg mb-4">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.4, delay: 0.05 }}
+              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-blue-100 text-gov-navy flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
                 1
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step1Title")}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{t("step1Desc")}</p>
-            </div>
+            </motion.div>
 
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-extrabold text-lg mb-4">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
                 2
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step2Title")}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{t("step2Desc")}</p>
-            </div>
+            </motion.div>
 
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-extrabold text-lg mb-4">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
                 3
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step3Title")}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{t("step3Desc")}</p>
-            </div>
+            </motion.div>
 
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-extrabold text-lg mb-4">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
                 4
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step4Title")}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{t("step4Desc")}</p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -251,7 +295,7 @@ export function HomeClient({
 
             <Link
               href="/challenges"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl shadow-sm transition-colors group"
             >
               <span>
                 {language === "hi"
@@ -260,7 +304,7 @@ export function HomeClient({
                   ? `تمام ${totalChallenges} مسائل دیکھیں`
                   : `Explore All ${totalChallenges} Challenges`}
               </span>
-              <ArrowRight className="w-4 h-4 text-slate-500" />
+              <ArrowRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
@@ -273,7 +317,11 @@ export function HomeClient({
                 <PopCard
                   key={item.id}
                   delay={0.1 + idx * 0.05}
-                  className="bg-white rounded-2xl border border-slate-200 hover:border-gov-navyLight/60 shadow-sm hover:shadow-md transition-all flex flex-col justify-between p-5"
+                  className={`bg-white rounded-2xl border ${
+                    isCritical
+                      ? "hover:border-red-400/80 hover:shadow-red-500/10"
+                      : "hover:border-amber-400/80 hover:shadow-amber-500/10"
+                  } shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between p-5 group/card`}
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-3">
@@ -324,10 +372,10 @@ export function HomeClient({
 
                     <Link
                       href={`/challenges/${item.id}`}
-                      className="text-xs font-bold text-gov-navy hover:text-gov-navyLight flex items-center gap-1"
+                      className="text-xs font-bold text-gov-navy hover:text-gov-navyLight flex items-center gap-1 group/btn"
                     >
                       <span>{language === "hi" ? "विवरण देखें" : language === "ur" ? "تفصیلات" : "Details"}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </PopCard>
@@ -354,7 +402,13 @@ export function HomeClient({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.35, delay: 0.05 }}
+              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+            >
               <div className="text-amber-400 font-bold text-sm mb-1">
                 {language === "hi" ? "1. प्रतिरूप पहचान व विलय" : language === "ur" ? "1. نقل کی شناخت اور انضمام" : "1. Duplicate Detection & Merge"}
               </div>
@@ -365,9 +419,15 @@ export function HomeClient({
                   ? "ٹی ایف-آئی ڈی ایف مماثلت صارفین کو انتباہ کرتی ہے اور افسران کو انضمام کنسول فراہم کرتی ہے۔"
                   : "In-engine TF-IDF & Cosine similarity warns users during intake and equips Govt Admins with a side-by-side diff merge console."}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.35, delay: 0.1 }}
+              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+            >
               <div className="text-amber-400 font-bold text-sm mb-1">
                 {language === "hi" ? "2. स्वचालित समस्या वर्गीकरण" : language === "ur" ? "2. خودکار درجہ بندی" : "2. Automatic Classification"}
               </div>
@@ -378,9 +438,15 @@ export function HomeClient({
                   ? "این ایل پی مسائل کی درجہ بندی کرتا ہے اور 1-100 تک ارجنسی اسکور کا حساب لگاتا ہے۔"
                   : "NLP problem segregation categorizes ground issues, extracts domain keywords, and computes an automated 1-100 urgency score."}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.35, delay: 0.15 }}
+              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+            >
               <div className="text-amber-400 font-bold text-sm mb-1">
                 {language === "hi" ? "3. पारदर्शी विशेषज्ञता मिलान" : language === "ur" ? "3. شفاف ماہرانہ میچنگ" : "3. Explainable Expertise Match"}
               </div>
@@ -391,9 +457,15 @@ export function HomeClient({
                   ? "محققین کے ساتھ مکمل شفافیت کے ساتھ مسائل کو میچ کیا جاتا ہے۔"
                   : "Multi-factor scoring algorithm matches problems to researchers (BIT Mesra, IIT ISM Dhanbad) with complete transparency bars."}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.35, delay: 0.2 }}
+              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+            >
               <div className="text-amber-400 font-bold text-sm mb-1">
                 {language === "hi" ? "4. बहुभाषी वॉयस एआई व अनुवाद" : language === "ur" ? "4. کثیر لسانی وائس اے آئی اور ترجمہ" : "4. AI Voice & Translation"}
               </div>
@@ -404,9 +476,15 @@ export function HomeClient({
                   ? "انگریزی، ہندی اور اردو میں لائیو وائس ڈکٹیشن اور پوری ویب سائٹ کا کثیر لسانی ترجمہ۔"
                   : "Full English, Hindi & Urdu localization with Web Speech live voice dictation and full-site multilingual translation."}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.35, delay: 0.25 }}
+              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+            >
               <div className="text-amber-400 font-bold text-sm mb-1">
                 {language === "hi" ? "5. सरकारी सत्यापन एवं डिजिटल प्रमाण पत्र" : language === "ur" ? "5. سرکاری تصدیق اور ڈیجیٹل سرٹیفکیٹ" : "5. Govt Verification & Certificate"}
               </div>
@@ -417,9 +495,15 @@ export function HomeClient({
                   ? "ڈسٹرکٹ نوڈل آفیسر کی ڈیجیٹل آڈٹ ٹریل اور پرنٹ کے قابل سرکاری سرٹیفکیٹس۔"
                   : "District Nodal Officer digital audit trail, milestone sign-off, and printable official verification certificates with state seals."}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.35, delay: 0.3 }}
+              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+            >
               <div className="text-amber-400 font-bold text-sm mb-1">
                 {language === "hi" ? "6. संवादात्मक जीआईएस आपदा मानचित्र" : language === "ur" ? "6. انٹرایکٹو جی آئی ایس نقشہ" : "6. Interactive GIS Disaster Map"}
               </div>
@@ -430,7 +514,7 @@ export function HomeClient({
                   ? "4 بیس میپس اور 2.4 کلومیٹر خطرے کے بفر زون کے ساتھ لائیو مانیٹرنگ۔"
                   : "4 satellite & topo basemaps with 2.4km critical hazard corridor buffer zones and live pin drops."}
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
