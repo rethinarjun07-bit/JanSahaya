@@ -165,34 +165,41 @@ export async function POST(request: NextRequest) {
       { role: "user" as const, parts: [{ text: message }] },
     ];
 
-    const ai = new GoogleGenAI({ apiKey });
+    const aiClient = new GoogleGenAI({ apiKey });
+
+    // 3-model cascade with progressive fallback
+    const modelCascade = [
+      "gemini-2.0-flash",
+      "gemini-flash-latest",
+      "gemini-1.5-flash",
+    ];
 
     let reply = "";
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3.7-flash",
-        contents,
-        config: {
-          systemInstruction: fullSystemPrompt,
-          maxOutputTokens: 1000,
-          temperature: 0.6,
-          topP: 0.9,
-          topK: 40,
-        },
-      });
-      reply = response.text || "";
-    } catch (modelErr) {
-      console.warn("gemini-3.7-flash failed, falling back to gemini-flash-latest:", modelErr);
-      const fallbackRes = await ai.models.generateContent({
-        model: "gemini-flash-latest",
-        contents,
-        config: {
-          systemInstruction: fullSystemPrompt,
-          maxOutputTokens: 1000,
-          temperature: 0.6,
-        },
-      });
-      reply = fallbackRes.text || "";
+    let lastModelError: unknown = null;
+
+    for (const modelName of modelCascade) {
+      try {
+        const response = await aiClient.models.generateContent({
+          model: modelName,
+          contents,
+          config: {
+            systemInstruction: fullSystemPrompt,
+            maxOutputTokens: 1000,
+            temperature: 0.65,
+            topP: 0.9,
+            topK: 40,
+          },
+        });
+        reply = response.text || "";
+        if (reply) break; // success — exit cascade
+      } catch (modelErr) {
+        console.warn(`${modelName} failed, trying next model:`, modelErr);
+        lastModelError = modelErr;
+      }
+    }
+
+    if (!reply && lastModelError) {
+      throw lastModelError; // let outer catch handle it gracefully
     }
 
     if (!reply) {
@@ -207,11 +214,23 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error("Gemini chat error:", error);
     const errMsg = error instanceof Error ? error.message : String(error);
+    const isHindi = /[\u0900-\u097F]/.test(message);
 
-    // Handle specific error types
-    if (errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED")) {
+    // For quota/rate-limit errors, fall through to smart demo response
+    if (errMsg.includes("quota") || errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("UNAVAILABLE") || errMsg.includes("503")) {
+      // Try to answer intelligently using offline demo engine first
+      const smartReply = getDemoResponse(message || "");
+
+      // If getDemoResponse gave a generic/default answer, prepend a brief context note
+      const isGenericFallback = smartReply.includes("JanSahaya AI") && smartReply.includes("disaster");
+      const finalReply = isGenericFallback
+        ? isHindi
+          ? `${smartReply}\n\n---\n*🔄 अभी बड़ी संख्या में लोग सहायता ले रहे हैं। कुछ क्षण में फिर से प्रयास करें।*`
+          : `${smartReply}\n\n---\n*🔄 Our AI is handling a high volume of requests. Response shown from offline knowledge. Please retry in a moment.*`
+        : smartReply;
+
       return NextResponse.json({
-        reply: "I'm experiencing high traffic right now. For immediate emergency help, call **112**. For SDMA: **0651-2446900**. Please try again in a moment.",
+        reply: finalReply,
         isDemo: true,
       });
     }
