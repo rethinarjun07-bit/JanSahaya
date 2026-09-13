@@ -12,7 +12,7 @@ interface Props {
 export default async function CompareSolutionsPage({ searchParams }: Props) {
   const challengeId = searchParams.challengeId;
 
-  const challenge = challengeId
+  let challenge = challengeId
     ? await db.challenge.findUnique({
         where: { id: challengeId },
         include: {
@@ -26,6 +26,25 @@ export default async function CompareSolutionsPage({ searchParams }: Props) {
         },
       })
     : null;
+
+  if (!challenge) {
+    challenge = await db.challenge.findFirst({
+      where: {
+        solutions: {
+          some: {},
+        },
+      },
+      include: {
+        solutions: {
+          include: {
+            author: true,
+            milestones: true,
+            reviews: true,
+          },
+        },
+      },
+    });
+  }
 
   const solutions = challenge?.solutions || [];
 

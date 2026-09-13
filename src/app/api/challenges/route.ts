@@ -61,13 +61,36 @@ export async function GET(request: Request) {
       },
     });
 
+    const now = new Date().getTime();
+
     return NextResponse.json({
-      challenges: challenges.map((c) => ({
-        ...c,
-        aiTags: c.aiTags ? JSON.parse(c.aiTags) : [],
-        mediaUrls: c.mediaUrls ? JSON.parse(c.mediaUrls) : [],
-        sdgGoals: c.sdgGoals ? JSON.parse(c.sdgGoals) : [],
-      })),
+      challenges: challenges.map((c) => {
+        const deadlineTime = c.slaDeadline
+          ? new Date(c.slaDeadline).getTime()
+          : new Date(c.createdAt).getTime() + 14 * 24 * 3600 * 1000;
+        const diffHours = Math.round((deadlineTime - now) / (1000 * 60 * 60));
+
+        let liveSlaStatus = c.slaStatus || "ON_TRACK";
+        if (c.status === "SOLVED" || c.status === "MERGED") {
+          liveSlaStatus = "RESOLVED";
+        } else if (diffHours < -24) {
+          liveSlaStatus = "ESCALATED";
+        } else if (diffHours < 0) {
+          liveSlaStatus = "BREACHED";
+        } else if (diffHours <= 24) {
+          liveSlaStatus = "APPROACHING";
+        }
+
+        return {
+          ...c,
+          slaStatus: liveSlaStatus,
+          slaRemainingHours: diffHours,
+          slaBreached: diffHours < 0,
+          aiTags: c.aiTags ? JSON.parse(c.aiTags) : [],
+          mediaUrls: c.mediaUrls ? JSON.parse(c.mediaUrls) : [],
+          sdgGoals: c.sdgGoals ? JSON.parse(c.sdgGoals) : [],
+        };
+      }),
       total: challenges.length,
     });
   } catch (error: unknown) {

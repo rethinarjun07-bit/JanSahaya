@@ -378,6 +378,13 @@ async function main() {
       category: "Disaster Management",
       severity: "CRITICAL",
       urgencyScore: 92,
+      confidenceScore: 95,
+      evidenceStrength: 92,
+      priorityScore: 91,
+      recommendedDepartment: "District Disaster Management Authority (DDMA) / Urban Development",
+      sdgGoals: JSON.stringify(["SDG 6: Clean Water & Sanitation", "SDG 11: Sustainable Cities & Communities", "SDG 13: Climate Action"]),
+      slaStatus: "ON_TRACK",
+      slaDeadline: new Date(Date.now() + 48 * 3600 * 1000),
       status: "ASSIGNED",
       latitude: 23.3857,
       longitude: 85.3275,
@@ -407,6 +414,13 @@ async function main() {
       category: "Disaster Management",
       severity: "CRITICAL",
       urgencyScore: 88,
+      confidenceScore: 91,
+      evidenceStrength: 80,
+      priorityScore: 85,
+      duplicateProbability: 92,
+      recommendedDepartment: "District Disaster Management Authority (DDMA)",
+      sdgGoals: JSON.stringify(["SDG 11: Sustainable Cities & Communities"]),
+      slaStatus: "ON_TRACK",
       status: "SUBMITTED",
       latitude: 23.3862,
       longitude: 85.3281,
@@ -526,6 +540,101 @@ async function main() {
       autoAssignedUniversity: "IIT (ISM) Dhanbad",
       createdById: citizenUser.id,
       viewCount: 75,
+    },
+  });
+
+  // Scenario #4: Low-Confidence Problem (triggers "Human Verification Recommended" banner)
+  const chal_low_conf = await prisma.challenge.create({
+    data: {
+      title: "Unusual ground vibrations and rumbling sound reported near old abandoned quarry site",
+      description: "Local hamlets report intermittent evening vibrations and low-frequency rumble near the southern ridge. Unclear whether caused by unauthorized stone blasting, heavy mineral transport trucks, or seismic fault movement. Reported without photo evidence.",
+      category: "Infrastructure",
+      severity: "MEDIUM",
+      urgencyScore: 45,
+      confidenceScore: 48,
+      evidenceStrength: 32,
+      priorityScore: 42,
+      recommendedDepartment: "District Administration & Mining Directorate",
+      sdgGoals: JSON.stringify(["SDG 9: Industry, Innovation & Infrastructure"]),
+      slaStatus: "ON_TRACK",
+      status: "SUBMITTED",
+      latitude: 23.4120,
+      longitude: 85.2910,
+      address: "Old Quarry Periphery, Kanke Block, Ranchi",
+      district: "Ranchi",
+      state: "Jharkhand",
+      pincode: "834006",
+      language: "en",
+      aiTags: JSON.stringify(["Quarry", "Vibrations", "Unverified Ground Report"]),
+      createdById: citizenUser.id,
+      viewCount: 64,
+    },
+  });
+
+  // Scenario #5: Escalated Problem (SLA breached, triggers smart escalation workflow)
+  const chal_escalated = await prisma.challenge.create({
+    data: {
+      title: "Toxic acidic mine water outflow submerging paddy fields along Damodar river bank",
+      description: "Breach in abandoned open-cast pit retaining bund discharging pH 3.2 sulfuric mine acid water directly into 120 acres of paddy fields. 4 days past statutory emergency triage deadline without on-ground mitigation.",
+      category: "Mining & Geology",
+      severity: "CRITICAL",
+      urgencyScore: 96,
+      confidenceScore: 94,
+      evidenceStrength: 88,
+      priorityScore: 97,
+      recommendedDepartment: "State Pollution Control Board & Dept of Mines",
+      sdgGoals: JSON.stringify(["SDG 6: Clean Water & Sanitation", "SDG 15: Life on Land"]),
+      status: "ESCALATED",
+      slaStatus: "ESCALATED",
+      slaDeadline: new Date(Date.now() - 4 * 24 * 3600 * 1000),
+      latitude: 23.7820,
+      longitude: 86.3450,
+      address: "Damodar River Basin, Katras Block, Dhanbad",
+      district: "Dhanbad",
+      state: "Jharkhand",
+      pincode: "828113",
+      language: "en",
+      aiTags: JSON.stringify(["Acid Mine Drainage", "Damodar Basin", "Agricultural Loss", "SLA Breached"]),
+      createdById: citizenUser.id,
+      verifiedAt: new Date(Date.now() - 10 * 24 * 3600 * 1000),
+      verifiedById: adminUser.id,
+      officialNotes: "ESCALATED to State Disaster Executive Committee: Initial 48-hour emergency response deadline expired.",
+      viewCount: 280,
+    },
+  });
+
+  // Scenario #6: Solved Problem with Citizen Ground Verification & Measured Impact
+  const chal_solved = await prisma.challenge.create({
+    data: {
+      title: "High-risk cliff rockfall stabilization along Patratu Valley Ghat hairpin turns",
+      description: "Severe geological rockfall hazards along steep Patratu Valley hairpin bends #4 and #7 threatening daily commuter buses. Successfully mitigated using anchor-bolted high-tensile steel mesh and laser tilt sensors.",
+      category: "Infrastructure",
+      severity: "HIGH",
+      urgencyScore: 84,
+      confidenceScore: 93,
+      evidenceStrength: 96,
+      priorityScore: 82,
+      recommendedDepartment: "Road Construction Department (RCD) / DDMA",
+      sdgGoals: JSON.stringify(["SDG 9: Resilient Infrastructure", "SDG 11: Sustainable Cities"]),
+      status: "SOLVED",
+      slaStatus: "RESOLVED",
+      citizenFeedback: "SOLVED",
+      citizenFeedbackNotes: "Slope mesh anchored. Verified no fallen boulders after recent torrential rains. Bus routes operating safely.",
+      impactScore: 94,
+      beneficiariesCount: 45000,
+      latitude: 23.6330,
+      longitude: 85.3015,
+      address: "Hairpin Bend #4, Patratu Ghat Road, Ramgarh",
+      district: "Ramgarh",
+      state: "Jharkhand",
+      pincode: "829118",
+      language: "en",
+      aiTags: JSON.stringify(["Rockfall", "Ghat Road", "Slope Mesh", "Disaster Mitigated"]),
+      createdById: citizenUser.id,
+      verifiedAt: new Date("2024-01-10"),
+      verifiedById: adminUser.id,
+      officialNotes: "Implementation inspected and signed off by Executive Engineer RCD. Citizen verification completed.",
+      viewCount: 610,
     },
   });
 
@@ -914,6 +1023,48 @@ async function main() {
       costEffectiveness: 4.5,
       scalabilityScore: 4.8,
       feedback: "Tata Steel CSR Foundation approves ₹12 Lakhs grant co-sponsorship for phase 3 pneumatic agitator fabrication in Jamshedpur workshops.",
+    },
+  });
+
+  // Competing Solution #1B for Morabadi Flooding (Enables Side-by-Side Proposal Comparison)
+  const sol1_alt = await prisma.solution.create({
+    data: {
+      challengeId: chal1.id,
+      authorId: createdSolvers["team.jalrakshak@demo.in"] || solverUser.id,
+      teamName: "IIT-ISM AquaTech Innovators",
+      title: "Modular Siphon-Assisted Gravity Stormwater Diversion & Dual-Stage Debris Gate",
+      abstract: "A purely passive, zero-electricity gravity siphon and dual-stage floating debris gate designed to divert cloudburst peak volume into decentralized percolation recharge wells, cutting civil construction cost by 57%.",
+      methodology: "1. Micro-catchment elevation grading.\n2. Modular prefabricated stainless steel debris grates.\n3. Quad-siphon gravity pipe assembly operating without motorized pumps.",
+      techStack: JSON.stringify(["Gravity Siphon Hydrodynamics", "Modular Stainless Steel Grates", "Groundwater Recharge Wells"]),
+      budgetEstimate: 620000,
+      timelineMonths: 3,
+      status: "PROPOSED",
+      milestoneStage: "Phase 1: Conceptual Siphon Calibration",
+    },
+  });
+
+  await prisma.milestone.create({
+    data: {
+      solutionId: sol1_alt.id,
+      order: 1,
+      title: "Gravity Siphon Hydrological Sizing & Sluice Prototype",
+      description: "Computational fluid simulation of siphon discharge rate under 80mm/hr cloudburst.",
+      status: "APPROVED",
+      updatedAt: new Date(),
+    },
+  });
+
+  await prisma.review.create({
+    data: {
+      solutionId: sol1_alt.id,
+      reviewerId: adminUser.id,
+      role: "GOVT_NODAL",
+      rating: 4.4,
+      feasibilityScore: 4.6,
+      impactScore: 4.3,
+      costEffectiveness: 4.9,
+      scalabilityScore: 4.5,
+      feedback: "Highly frugal and low-maintenance alternative. Good candidate for rapid seasonal deployment.",
     },
   });
 

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import db from "./db";
 
-const JWT_SECRET = process.env.JWT_SECRET || "jansahaya-super-secret-jwt-key-sih-2024-gov-jharkhand";
+const JWT_SECRET = process.env.JWT_SECRET || "jansahaya-v2-production-jwt-signing-secret-gov-jharkhand";
 
 export interface TokenPayload {
   userId: string;

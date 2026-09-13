@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
 // ============================================================
 // ADVANCED SYSTEM PROMPT — JanSahaya AI v2
 // Covers: disasters, health, agriculture, law, schemes, general

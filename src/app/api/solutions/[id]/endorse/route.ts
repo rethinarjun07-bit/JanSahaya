@@ -10,14 +10,25 @@ export async function POST(
     const { id: solutionId } = params;
     const session = await getUserFromRequest(request);
 
-    let endorserId = session?.userId;
-    let endorserName = session?.name || "Govt & Industry Panel";
-
-    if (!endorserId) {
-      const demoAdmin = await db.user.findFirst({ where: { role: "ADMIN" } });
-      endorserId = demoAdmin?.id;
-      endorserName = demoAdmin?.name || "Govt Nodal Authority";
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized: Authentication required to endorse solutions.", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
+
+    if (session.role !== "ADMIN" && session.role !== "INDUSTRY") {
+      return NextResponse.json(
+        {
+          error: "Forbidden: Only Government Authorities (ADMIN) or Industry CSR Partners (INDUSTRY) can endorse solutions.",
+          code: "INSUFFICIENT_PRIVILEGES",
+        },
+        { status: 403 }
+      );
+    }
+
+    const endorserId = session.userId;
+    const endorserName = session.name || (session.role === "ADMIN" ? "Govt Nodal Authority" : "Industry CSR Partner");
 
     const { status, remarks, grantPledge } = await request.json();
 

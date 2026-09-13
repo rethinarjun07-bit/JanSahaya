@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const JWT_SECRET = process.env.JWT_SECRET || "jansahaya-super-secret-jwt-key-sih-2024-gov-jharkhand-change-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET || "jansahaya-v2-production-jwt-signing-secret-gov-jharkhand";
 
 // ---------------------------------------------------------------------------
 // Edge-compatible HMAC-SHA256 JWT verification

@@ -29,83 +29,75 @@ JanSahaya (जनसहाय — "People's Support & Resolution") is a national
 | 4 | **Voice Transcription & Hindi/English** | Web Speech API voice dictation modal (`src/components/voice-input-modal.tsx`); full EN↔HI i18n (`src/lib/i18n/index.ts`) |
 | 5 | **Government-Aided Workflows** | Verification console with printable statutory certificate (`/admin/verify/[id]`); audit trail in DB |
 | 6 | **Dynamic Animations** | Framer Motion transitions, Tailwind custom keyframes, pulsing Leaflet markers across all pages |
-| 7 | **Gamified Celebratory Effects** | `canvas-confetti` multi-burst, Web Audio procedural chimes (`src/lib/sound.ts`), badge unlock modals |
+| 7 | **Gamified Celebratory Effects** | `canvas-confetti` multi-burst, Web Audio procedural chimes (`src/lib/sound.ts`), badge## 🗂️ Unified System Architecture & Technology Stack
 
----
-
-## 🗂️ 3-Tier Architecture & Technology Stack
+JanSahaya uses an integrated full-stack architecture with clear separation of responsibilities:
 
 | Layer | Technology & Role |
 |-------|-------------------|
-| **Backend API & AI** | **Python (FastAPI)** (`backend/main.py`) — Asynchronous REST API, OpenAPI docs at `/docs`, JWT/cookie auth, Pydantic validation |
-| **AI / NLP Intelligence** | **Scikit-Learn + Python NLP** (`backend/app/services/ai/`) — TF-IDF N-gram duplicate detection, severity/urgency scoring (1–100), explainable solver matching, Gemini summarizer |
-| **Database** | **PostgreSQL 16** — SQLAlchemy 2.0 ORM, ACID relational models, automatic table generation, full seed script |
-| **Frontend UI** | **React 18 / Next.js** (`src/`) — Transparent proxy rewrites to FastAPI, Leaflet GIS heatmap, Framer Motion animations, Recharts, Tailwind CSS |
-| **Containerization** | **Docker Compose** (`docker-compose.yml`) — One-command orchestration for PostgreSQL + FastAPI + React |
+| **Primary Full-Stack & API** | **Next.js 14 (App Router) + TypeScript** (`src/`) — Full-stack web application, server-side route handlers, robust JWT + bcrypt security, RBAC middleware, and real-time civic workflows |
+| **Relational Database** | **Prisma ORM** (`prisma/schema.prisma`) — Dual-target architecture: local zero-setup **SQLite** (`dev.db`) for instant offline demonstration & evaluation, with direct toggle to production **PostgreSQL 16** via `DATABASE_URL` |
+| **Hybrid Civic Intelligence** | **Deterministic NLP + TF-IDF + Gemini Cascade** (`src/lib/nlp/`) — 3-tier intelligence engine: Local keyword rules & urgency scoring (Tier 1), TF-IDF N-gram duplicate detection & geospatial clustering (Tier 2), and multimodal Gemini LLM with offline fallback (Tier 3) |
+| **Auxiliary AI Microservice** | **Python (FastAPI)** (`backend/`) — Optional companion microservice for advanced Scikit-Learn pipelines, batch ML clustering, and server-side speech models |
+| **GIS & Visualization** | **Leaflet + Recharts + Framer Motion** — Interactive geographic disaster heatmap, pulsing severity indicators, and analytical charts |
+| **Containerization** | **Docker Compose** (`docker-compose.yml`) — Containerized deployment for PostgreSQL + Next.js + Python |
 
 ---
 
 ## 🚀 Quick Start
- 
-### Option A: One-Command Start with Docker Compose (Recommended)
+
+### 1. Instant Local Run (Zero-Config SQLite — Recommended for SIH Evaluation)
 ```bash
-# Starts PostgreSQL (5432) + Python FastAPI (8000) + React (3000)
-docker compose up
+# 1. Install dependencies
+npm install
+
+# 2. Push database schema (creates local dev.db)
+npx prisma db push
+
+# 3. Start development server
+npm run dev
 ```
-- Open Frontend: [http://localhost:3000](http://localhost:3000)
-- Open Interactive FastAPI Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-### Option B: Local Development
-
-#### 1. Start Python (FastAPI) Backend:
+### 2. Full-Stack with Auxiliary Python (FastAPI) Backend
 ```bash
-# Windows 1-click script (sets up virtualenv & dependencies automatically):
-start_backend.bat
-
-# Or manually:
-cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-#### 2. Start React Frontend:
-```bash
-# In the root directory:
-npm install
-npm run dev
-```
-
-#### Or Start Both Together on Windows:
-```bash
+# Windows 1-click script (starts FastAPI on port 8000 and Next.js on port 3000):
 start_all.bat
+
+# Or run FastAPI separately:
+start_backend.bat
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+---
 
-### Production Build
-
+### 3. Production Deployment with PostgreSQL 16
 ```bash
+# Set your PostgreSQL connection string in .env:
+# DATABASE_URL="postgresql://postgres:password@localhost:5432/jansahaya?schema=public"
+
+# Sync schema and generate client
+npx prisma db push
+
+# Build production bundle
 npm run build
 npm start
 ```
 
 ---
 
-## 🔑 Demo Credentials & 1-Click Role Switcher
+## 🔑 Demonstration Personas & 1-Click Role Switcher
+> **NOTICE**: All personas, organizations, and institutional affiliations listed below are **SIMULATED DEMONSTRATION IDENTITIES** created strictly for evaluating the platform workflows. They do not imply real-world partnerships, endorsements, or legal sponsorships.
 
-The login page (`/login`) features a **1-Click Persona Switcher** — simply click any role card to instantly log in without typing credentials.
+The login page (`/login`) features a **1-Click Persona Switcher** for instantaneous hackathon demonstration:
 
-| Role | Email | Password | Persona |
-|------|-------|----------|---------|
-| 🏛️ **Admin** | `admin@demo.in` | `Admin@123` | Sri Rajesh Kumar Sinha — Ranchi Disaster Management Cell |
-| 👤 **Citizen** | `citizen@demo.in` | `Citizen@123` | Priya Sharma — Reporter, Ranchi |
-| 🔬 **Solver** | `solver@demo.in` | `Solver@123` | Dr. Aarav Mehta — BIT Mesra Disaster Tech Lab |
-| 🏭 **Industry** | `industry@demo.in` | `Industry@123` | Tata Steel CSR Foundation, Jamshedpur |
-
+| Role | Email | Password | Simulated Demo Persona |
+|------|-------|----------|------------------------|
+| 🏛️ **Government (Admin)** | `admin@demo.in` | `Admin@123` | Sri Rajesh Kumar Sinha — State Disaster Triage Officer |
+| 👤 **Citizen Reporter** | `citizen@demo.in` | `Citizen@123` | Priya Sharma — Community Volunteer, Namkum |
+| 🔬 **Research Solver** | `solver@demo.in` | `Solver@123` | Dr. Aarav Mehta — University Disaster Tech Lab |
+| 🏭 **Industry / CSR** | `industry@demo.in` | `Industry@123` | Corporate Social Responsibility Foundation Partner |
 ---
 
 ## 🗺️ Complete Page Directory

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import db from "@/lib/db";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // Parses SMS like: "FLOOD RANCHI HIGH" or "MINING FIRE DHANBAD CRITICAL"
 // Also understands Hindi: "बाढ़ रांची गंभीर"

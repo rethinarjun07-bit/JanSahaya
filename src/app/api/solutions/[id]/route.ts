@@ -63,45 +63,82 @@ export async function PUT(
   try {
     const { id } = params;
     const session = await getUserFromRequest(request);
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized: Authentication required.", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    const existingSolution = await db.solution.findUnique({
+      where: { id },
+    });
+
+    if (!existingSolution) {
+      return NextResponse.json({ error: "Solution not found" }, { status: 404 });
+    }
+
+    const isAuthor = session.userId === existingSolution.authorId;
+    const isAdmin = session.role === "ADMIN";
+
+    if (!isAuthor && !isAdmin) {
+      return NextResponse.json(
+        { error: "Forbidden: You are not authorized to modify this solution proposal.", code: "INSUFFICIENT_PRIVILEGES" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     // If updating a milestone status
     if (body.milestoneId && body.milestoneStatus) {
-      await db.milestone.update({
-        where: { id: body.milestoneId },
-        data: {
-          status: body.milestoneStatus,
-          notes: body.notes,
-          proofUrl: body.proofUrl,
-          updatedAt: new Date(),
-        },
+      const milestone = await db.milestone.findFirst({
+        where: { id: body.milestoneId, solutionId: id },
       });
+      if (milestone) {
+        await db.milestone.update({
+          where: { id: body.milestoneId },
+          data: {
+            status: body.milestoneStatus,
+            notes: body.notes,
+            proofUrl: body.proofUrl,
+            updatedAt: new Date(),
+          },
+        });
+      }
     }
+
+    // Only Government Admins can set govtEndorsed
+    const govtEndorsed = isAdmin && typeof body.govtEndorsed === "boolean" ? body.govtEndorsed : existingSolution.govtEndorsed;
+    const endorsedBy = isAdmin && body.endorsedBy ? body.endorsedBy : existingSolution.endorsedBy;
 
     const updated = await db.solution.update({
       where: { id },
       data: {
-        status: body.status,
-        milestoneStage: body.milestoneStage,
-        govtEndorsed: body.govtEndorsed,
-        endorsedBy: body.endorsedBy,
-        endorsedAt: body.govtEndorsed ? new Date() : undefined,
+        status: body.status || existingSolution.status,
+        milestoneStage: body.milestoneStage || existingSolution.milestoneStage,
+        govtEndorsed,
+        endorsedBy,
+        endorsedAt: govtEndorsed ? new Date() : existingSolution.endorsedAt,
       },
       include: { milestones: true },
     });
 
-    if (session) {
-      await db.auditLog.create({
-        data: {
-          action: "SOLUTION_PROGRESS_UPDATED",
-          entityType: "Solution",
-          entityId: id,
-          actorId: session.userId,
-          actorName: session.name,
-          details: JSON.stringify({ status: body.status, milestoneStage: body.milestoneStage }),
-        },
-      });
-    }
+    await db.auditLog.create({
+      data: {
+        action: "SOLUTION_PROGRESS_UPDATED",
+        entityType: "Solution",
+        entityId: id,
+        actorId: session.userId,
+        actorName: session.name,
+        details: JSON.stringify({
+          status: updated.status,
+          milestoneStage: updated.milestoneStage,
+          govtEndorsed: updated.govtEndorsed,
+        }),
+      },
+    });
 
     return NextResponse.json({ success: true, solution: updated });
   } catch (error: unknown) {

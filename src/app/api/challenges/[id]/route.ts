@@ -61,10 +61,31 @@ export async function GET(
       return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
     }
 
+    const now = new Date().getTime();
+    const deadlineTime = challenge.slaDeadline
+      ? new Date(challenge.slaDeadline).getTime()
+      : new Date(challenge.createdAt).getTime() + 14 * 24 * 3600 * 1000;
+    const diffHours = Math.round((deadlineTime - now) / (1000 * 60 * 60));
+
+    let liveSlaStatus = challenge.slaStatus || "ON_TRACK";
+    if (challenge.status === "SOLVED" || challenge.status === "MERGED") {
+      liveSlaStatus = "RESOLVED";
+    } else if (diffHours < -24) {
+      liveSlaStatus = "ESCALATED";
+    } else if (diffHours < 0) {
+      liveSlaStatus = "BREACHED";
+    } else if (diffHours <= 24) {
+      liveSlaStatus = "APPROACHING";
+    }
+
     return NextResponse.json({
       ...challenge,
+      slaStatus: liveSlaStatus,
+      slaRemainingHours: diffHours,
+      slaBreached: diffHours < 0,
       aiTags: challenge.aiTags ? JSON.parse(challenge.aiTags) : [],
       mediaUrls: challenge.mediaUrls ? JSON.parse(challenge.mediaUrls) : [],
+      sdgGoals: challenge.sdgGoals ? JSON.parse(challenge.sdgGoals) : [],
     });
   } catch (error: unknown) {
     console.error("Fetch Single Challenge Error:", error);
@@ -79,33 +100,77 @@ export async function PUT(
   try {
     const { id } = params;
     const session = await getUserFromRequest(request);
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized: Authentication required.", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    const existingChallenge = await db.challenge.findUnique({ where: { id } });
+    if (!existingChallenge) {
+      return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
+    }
+
+    const isAdmin = session.role === "ADMIN";
+    const isCreator = session.userId === existingChallenge.createdById;
+
+    if (!isAdmin && !isCreator) {
+      return NextResponse.json(
+        { error: "Forbidden: You do not have permission to modify this challenge.", code: "INSUFFICIENT_PRIVILEGES" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
+    // Citizens can only edit title/description while still in SUBMITTED state
+    if (!isAdmin && isCreator) {
+      if (existingChallenge.status !== "SUBMITTED") {
+        return NextResponse.json(
+          { error: "Cannot edit challenge once it has entered official government review.", code: "LIFECYCLE_LOCKED" },
+          { status: 400 }
+        );
+      }
+      const updated = await db.challenge.update({
+        where: { id },
+        data: {
+          title: body.title || existingChallenge.title,
+          description: body.description || existingChallenge.description,
+        },
+      });
+      return NextResponse.json({ success: true, challenge: updated });
+    }
+
+    // Admin updates (Government Authority)
     const updated = await db.challenge.update({
       where: { id },
       data: {
-        status: body.status,
-        officialNotes: body.officialNotes,
-        severity: body.severity,
-        assignedUniversityId: body.assignedUniversityId,
-        assignedDepartment: body.assignedDepartment,
-        verifiedAt: body.status === "VERIFIED" ? new Date() : undefined,
-        verifiedById: session?.userId,
+        status: body.status || existingChallenge.status,
+        officialNotes: body.officialNotes ?? existingChallenge.officialNotes,
+        severity: body.severity || existingChallenge.severity,
+        assignedUniversityId: body.assignedUniversityId ?? existingChallenge.assignedUniversityId,
+        assignedDepartment: body.assignedDepartment ?? existingChallenge.assignedDepartment,
+        verifiedAt: body.status === "VERIFIED" ? (existingChallenge.verifiedAt || new Date()) : existingChallenge.verifiedAt,
+        verifiedById: body.status === "VERIFIED" ? session.userId : existingChallenge.verifiedById,
       },
     });
 
-    if (session) {
-      await db.auditLog.create({
-        data: {
-          action: "CHALLENGE_UPDATED",
-          entityType: "Challenge",
-          entityId: id,
-          actorId: session.userId,
-          actorName: session.name,
-          details: JSON.stringify({ status: body.status, notes: body.officialNotes }),
-        },
-      });
-    }
+    await db.auditLog.create({
+      data: {
+        action: `CHALLENGE_${body.status || "UPDATED"}`,
+        entityType: "Challenge",
+        entityId: id,
+        actorId: session.userId,
+        actorName: session.name,
+        details: JSON.stringify({
+          status: updated.status,
+          notes: body.officialNotes,
+          severity: updated.severity,
+        }),
+      },
+    });
 
     return NextResponse.json({ success: true, challenge: updated });
   } catch (error: unknown) {

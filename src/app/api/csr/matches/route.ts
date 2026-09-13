@@ -10,7 +10,30 @@ export async function GET(request: Request) {
     const challengeId = searchParams.get("challengeId");
 
     if (!challengeId) {
-      return NextResponse.json({ error: "challengeId is required" }, { status: 400 });
+      // Global mode: Return CSR opportunities across verified challenges
+      const verifiedChallenges = await db.challenge.findMany({
+        where: { status: { in: ["VERIFIED", "ASSIGNED", "IN_PROGRESS"] } },
+        orderBy: { urgencyScore: "desc" },
+        take: 10,
+      });
+
+      const opportunities = verifiedChallenges.map((c) => ({
+        challengeId: c.id,
+        challengeTitle: c.title,
+        district: c.district,
+        category: c.category,
+        urgencyScore: c.urgencyScore,
+        matches: matchCSRPartners({
+          category: c.category,
+          district: c.district,
+          urgencyScore: c.urgencyScore,
+        }),
+      }));
+
+      return NextResponse.json({
+        total: opportunities.length,
+        opportunities,
+      });
     }
 
     const challenge = await db.challenge.findUnique({

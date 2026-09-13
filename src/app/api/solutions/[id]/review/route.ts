@@ -11,16 +11,26 @@ export async function POST(
     const { id: solutionId } = params;
     const session = await getUserFromRequest(request);
 
-    let reviewerId = session?.userId;
-    let reviewerRole = session?.role || "MENTOR";
-
-    if (!reviewerId) {
-      // Default to Industry partner or Admin
-      const demoReviewer = await db.user.findFirst({ where: { role: "INDUSTRY" } });
-      if (!demoReviewer) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      reviewerId = demoReviewer.id;
-      reviewerRole = "INDUSTRY";
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized: Authentication required to submit technical evaluations.", code: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
+
+    const allowedReviewerRoles = ["SOLVER", "INDUSTRY", "ADMIN"];
+    if (!allowedReviewerRoles.includes(session.role)) {
+      return NextResponse.json(
+        {
+          error: "Forbidden: Only Technical Evaluators (SOLVER, INDUSTRY, ADMIN) can submit proposal reviews.",
+          code: "INSUFFICIENT_PRIVILEGES",
+        },
+        { status: 403 }
+      );
+    }
+
+    const reviewerId = session.userId;
+    const reviewerRole = session.role;
 
     const body = await request.json();
     const result = ReviewSchema.safeParse({ ...body, solutionId });

@@ -9,20 +9,22 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const challengeId = searchParams.get("challengeId");
 
-    if (!challengeId) {
-      return NextResponse.json({ error: "challengeId is required" }, { status: 400 });
-    }
-
-    const challenge = await db.challenge.findUnique({
-      where: { id: challengeId },
-    });
+    let challenge = challengeId
+      ? await db.challenge.findUnique({
+          where: { id: challengeId },
+        })
+      : await db.challenge.findFirst({
+          where: { solutions: { some: {} } },
+        });
 
     if (!challenge) {
-      return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
+      return NextResponse.json({ error: "No challenge with proposals found" }, { status: 404 });
     }
 
+    const targetChallengeId = challenge.id;
+
     const solutions = await db.solution.findMany({
-      where: { challengeId },
+      where: { challengeId: targetChallengeId },
       include: {
         author: { select: { id: true, name: true, organization: true } },
         _count: { select: { reviews: true } },
