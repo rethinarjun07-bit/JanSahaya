@@ -97,19 +97,19 @@ export function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-[#FAF7F2] border-b border-[#E8DFC8] shadow-sm">
       {/* 1. Official National Tricolor Top Banner */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-4">
+      <div className="bg-[#15291F] text-[#E8DFC8] text-xs py-1.5 px-4 border-b border-[#244533]">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-amber-400 font-bold tracking-wide">
+            <span className="flex items-center gap-1 text-amber-300 font-bold tracking-wide">
               🇮🇳 Govt. of Jharkhand &bull; Disaster Management Cell
             </span>
-            <span className="hidden md:inline text-slate-500">|</span>
-            <span className="hidden md:inline text-slate-400 font-medium">
+            <span className="hidden md:inline text-emerald-700">|</span>
+            <span className="hidden md:inline text-slate-300 font-medium">
               Smart India Hackathon SIH26043
             </span>
-            <span className="hidden lg:inline-flex items-center gap-1 text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/80">
+            <span className="hidden lg:inline-flex items-center gap-1 text-emerald-300 bg-[#1E3B2C] px-2 py-0.5 rounded border border-[#2D5A43]">
               <PhoneCall className="w-3 h-3" /> 24x7 Helpline: 1070 / 112
             </span>
           </div>
@@ -250,19 +250,19 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo Branding */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-gov-navy to-gov-navyLight flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-              <ShieldAlert className="w-6 h-6 text-amber-400" />
+            <div className="w-10 h-10 rounded-xl bg-[#1A3D2F] flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
+              <ShieldAlert className="w-5 h-5 text-amber-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-extrabold text-gov-navy tracking-tight font-serif">
+                <span className="text-xl font-extrabold text-[#1A3D2F] tracking-tight font-serif">
                   {t("portalName")}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-gov-saffron font-bold border border-amber-300">
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-100 text-[#C05621] font-bold border border-amber-300">
                   SIH26043
                 </span>
               </div>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide">
+              <p className="text-[10px] text-slate-600 font-medium tracking-wide">
                 National Societal Innovation & Disaster Mitigation Portal
               </p>
             </div>
@@ -280,11 +280,11 @@ export function Navbar() {
                   onClick={() => sound.playClick()}
                   className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                     isActive
-                      ? "bg-gov-navy text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-gov-navy"
+                      ? "bg-[#1A3D2F] text-white shadow-sm"
+                      : "text-slate-700 hover:bg-[#EFE8DF] hover:text-[#1A3D2F]"
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-amber-400" : "text-slate-400"}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-amber-400" : "text-slate-500"}`} />
                   <span>{link.label}</span>
                   {link.badge && (
                     <span className="ml-0.5 text-[9px] px-1.5 py-0.2 bg-amber-400 text-slate-900 font-bold rounded">
@@ -301,7 +301,7 @@ export function Navbar() {
             <Link
               href="/challenges/new"
               onClick={() => sound.playClick()}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-gov-saffron to-amber-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 transform active:scale-95"
+              className="px-4 py-2 rounded-xl bg-[#C05621] hover:bg-[#A94418] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 transform active:scale-95"
             >
               <PlusCircle className="w-4 h-4" />
               <span>{t("navPostChallenge")}</span>

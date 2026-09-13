@@ -14,10 +14,22 @@ import {
   Sparkles,
   Mic,
   Search,
+  Landmark,
+  GraduationCap,
+  Users,
+  Compass,
+  FileCheck2,
+  TrendingUp,
+  HeartHandshake,
+  Layers,
+  ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import { useLanguage } from "./language-provider";
 import { PagePop, PopItem, PopCard } from "@/components/page-pop-transition";
 import { AnimatedCounter } from "@/components/animated-counter";
+import { QuadHelix } from "@/components/quad-helix";
+import { ProblemIntelligenceCard } from "@/components/problem-intelligence-card";
 
 interface FeaturedChallenge {
   id: string;
@@ -54,28 +66,42 @@ export function HomeClient({
   // Localized live ticker
   const tickerText =
     language === "hi"
-      ? "🚨 रांची में मानसून बाढ़ चेतावनी • झरिया में भूमिगत कोयला आग गैस टेलीमेट्री सक्रिय • पलामू फ्लोराइड जल शोधन पायलट स्वीकृत • साहिबगंज में गंगा नदी तट कटाव निगरानी • राज्य आपदा आपातकाल के लिए 1070 पर कॉल करें"
+      ? "🚨 रांची में मानसून जल निकासी निगरानी • झरिया में भूमिगत कोयला आग गैस टेलीमेट्री सक्रिय • पलामू फ्लोराइड जल शोधन पायलट स्वीकृत • साहिबगंज में गंगा नदी तट कटाव सर्वेक्षण • राज्य आपदा नियंत्रण कक्ष: 1070"
       : language === "ur"
-      ? "🚨 رانچی میں مون سون سیلاب کی وارننگ • جھریا میں زیر زمین کوئلے کی آگ کی گیس مانیٹرنگ فعال • پلامو فلورائیڈ پانی صاف کرنے کا پائلٹ منظور • صاحب گنج میں دریائے گنگا کے کٹاؤ کی نگرانی • ہنگامی صورتحال کے لیے 1070 پر کال کریں"
-      : "🚨 Monsoon Flood Warning in Ranchi • Subterranean Coal Fire Gas Telemetry Active in Jharia • Palamu Fluoride Water Purification Pilot Sanctioned • Ganga Riverbank Soil Erosion Monitoring at Sahibganj • Call 1070 for State Disaster Emergency";
+      ? "🚨 رانچی میں مون سون نکاسی آب کی نگرانی • جھریا میں زیر زمین کوئلے کی آگ کی مانیٹرنگ • پلامو فلورائیڈ پانی صاف کرنے کا پائلٹ منظور • صاحب گنج میں کٹاؤ کا سروے • ہنگامی ہیلپ لائن: 1070"
+      : "🚨 Ranchi Monsoon Urban Drainage Telemetry Active • Jharia Subterranean Coal Fire Gas Mitigation Pilot • Palamu Fluoride Water Purification Sanctioned • Sahibganj Ganga Riverbank Soil Erosion Survey • State Disaster Control Room: 1070";
+
+  // Problem lifecycle steps
+  const lifecycleSteps = [
+    { num: "01", name: "PROBLEM", desc: "Citizen Voice Intake", role: "Citizen" },
+    { num: "02", name: "UNDERSTAND", desc: "NLP & Duplicate Scan", role: "JanSahaya AI" },
+    { num: "03", name: "VERIFY", desc: "Statutory Sanction", role: "Government" },
+    { num: "04", name: "MATCH", desc: "Domain Lab Alignment", role: "AI & Govt" },
+    { num: "05", name: "SOLVE", desc: "Applied R&D Proposals", role: "University" },
+    { num: "06", name: "FUND", desc: "Section 135 Grants", role: "Industry / CSR" },
+    { num: "07", name: "IMPLEMENT", desc: "Stage-Gated Field Pilot", role: "Multi-Party" },
+    { num: "08", name: "IMPACT", desc: "Measurable Outcome", role: "Community" },
+  ];
 
   return (
-    <PagePop className="flex flex-col min-h-screen">
+    <PagePop className="flex flex-col min-h-screen bg-[#FAF7F2]">
       {/* 1. Emergency Live Alert Ticker */}
-      <PopItem delay={0.05} className="bg-amber-500 text-slate-950 font-semibold text-xs py-2 px-4 shadow-sm border-b border-amber-600">
+      <PopItem delay={0.05} className="bg-[#EFE8DF] text-slate-900 font-semibold text-xs py-2 px-4 border-b border-[#E0D5C3]">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
-            <span className="uppercase tracking-wider font-extrabold text-[11px] bg-red-600 text-white px-2 py-0.5 rounded">
-              {language === "hi" ? "उच्च सतर्कता" : language === "ur" ? "اعلیٰ الرٹ" : "High Alert Triage"}
+            <span className="w-2.5 h-2.5 rounded-full bg-[#C05621] animate-ping" />
+            <span className="uppercase tracking-wider font-extrabold text-[11px] bg-[#C05621] text-white px-2 py-0.5 rounded">
+              {language === "hi" ? "आपदा सतर्कता" : language === "ur" ? "اعلیٰ الرٹ" : "Civic Notice"}
             </span>
           </div>
           <div className="overflow-hidden whitespace-nowrap text-xs font-medium flex-1 group/ticker cursor-pointer">
-            <span className="inline-block animate-marquee group-hover/ticker:[animation-play-state:paused]">{tickerText}</span>
+            <span className="inline-block animate-marquee group-hover/ticker:[animation-play-state:paused] text-slate-800">
+              {tickerText}
+            </span>
           </div>
           <Link
             href="/map"
-            className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-slate-950 underline hover:text-white transition-colors shrink-0 group"
+            className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#1A3D2F] hover:text-[#2D6A4F] transition-colors shrink-0 group"
           >
             <span>{t("navMap")}</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -83,36 +109,29 @@ export function HomeClient({
         </div>
       </PopItem>
 
-      {/* 2. Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-gov-navy to-slate-900 text-white py-16 md:py-24 px-4 sm:px-6 lg:px-8">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.12, 1], opacity: [0.15, 0.22, 0.15] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-1/3 -right-32 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"
-        />
+      {/* 2. Scenic Jharkhand-Inspired Warm Civic Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#15291F] via-[#1A3D2F] to-[#244533] text-white py-20 md:py-28 px-4 sm:px-6 lg:px-8">
+        {/* Subtle Natural Canopy Contour Backdrop */}
+        <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="absolute -bottom-24 left-0 right-0 h-48 bg-gradient-to-t from-[#FAF7F2] to-transparent pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
+        <div className="max-w-5xl mx-auto relative z-10 text-center">
           <PopItem delay={0.1}>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-amber-300 text-xs font-semibold mb-6 shadow-sm">
-              <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-              <span>{t("subtagline")}</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-amber-200 text-xs font-semibold mb-6 shadow-sm">
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>SIH26043 &bull; Govt. of Jharkhand Disaster Management Cell</span>
             </div>
           </PopItem>
 
           <PopItem delay={0.15}>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight font-serif max-w-4xl mx-auto leading-tight sm:leading-none mb-6">
-              {t("heroHeading")}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight font-serif max-w-4xl mx-auto leading-tight sm:leading-none mb-6 text-white drop-shadow-sm">
+              Real Problems.<br />Real Solutions.
             </h1>
           </PopItem>
 
           <PopItem delay={0.2}>
-            <p className="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-              {t("heroSubheading")}
+            <p className="text-base sm:text-xl text-emerald-100/90 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+              JanSahaya connects citizens, government, universities and industry to turn local problems into measurable impact.
             </p>
           </PopItem>
 
@@ -120,92 +139,134 @@ export function HomeClient({
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
               <Link
                 href="/challenges/new"
-                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-gov-saffron to-amber-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2 group"
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#C05621] hover:bg-[#A94418] text-white font-extrabold text-sm shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 group tracking-wide uppercase"
               >
                 <Mic className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span>{t("navPostChallenge")}</span>
+                <span>REPORT A PROBLEM</span>
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-              <Link
-                href="/challenges"
-                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 font-bold text-sm transition-all flex items-center justify-center gap-2 group"
+              <a
+                href="#how-it-works"
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/25 font-bold text-sm transition-all flex items-center justify-center gap-2 group tracking-wide uppercase"
               >
-                <Search className="w-4 h-4 text-slate-300 group-hover:scale-110 transition-transform" />
-                <span>
-                  {t("navChallenges")} ({totalChallenges})
-                </span>
-              </Link>
+                <Search className="w-4 h-4 text-emerald-200 group-hover:scale-110 transition-transform" />
+                <span>SEE HOW IT WORKS</span>
+              </a>
             </motion.div>
           </PopItem>
 
           {/* Key Metrics Counter Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            <PopItem delay={0.28} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <PopItem delay={0.28} hoverEffect className="bg-white/10 backdrop-blur-md border border-white/15 hover:border-white/30 p-4 sm:p-5 rounded-2xl text-left transition-all">
+              <div className="text-[11px] font-bold text-emerald-200 uppercase tracking-wider mb-1">
                 {t("statsTotalChallenges")}
               </div>
               <div className="text-3xl font-extrabold text-white">
                 <AnimatedCounter value={totalChallenges} />
               </div>
-              <div className="text-[11px] text-amber-400 font-medium mt-1 flex items-center gap-1">
-                <Flame className="w-3 h-3 text-red-400 animate-pulse" /> {criticalCount} {t("criticalBadge")}
+              <div className="text-[11px] text-amber-300 font-medium mt-1 flex items-center gap-1">
+                <Flame className="w-3 h-3 text-red-400" /> {criticalCount} {t("criticalBadge")}
               </div>
             </PopItem>
 
-            <PopItem delay={0.32} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <PopItem delay={0.32} hoverEffect className="bg-white/10 backdrop-blur-md border border-white/15 hover:border-white/30 p-4 sm:p-5 rounded-2xl text-left transition-all">
+              <div className="text-[11px] font-bold text-emerald-200 uppercase tracking-wider mb-1">
                 {t("statsActiveResolutions")}
               </div>
               <div className="text-3xl font-extrabold text-white">
                 <AnimatedCounter value={totalSolutions} />
               </div>
-              <div className="text-[11px] text-emerald-400 font-medium mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Pilot Deployed
+              <div className="text-[11px] text-emerald-300 font-medium mt-1 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> Field Pilots Deployed
               </div>
             </PopItem>
 
-            <PopItem delay={0.36} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                {language === "hi" ? "साझेदार शोधकर्ता" : language === "ur" ? "تحقیقی شراکت دار" : "Partnered Researchers"}
+            <PopItem delay={0.36} hoverEffect className="bg-white/10 backdrop-blur-md border border-white/15 hover:border-white/30 p-4 sm:p-5 rounded-2xl text-left transition-all">
+              <div className="text-[11px] font-bold text-emerald-200 uppercase tracking-wider mb-1">
+                Partner Researchers
               </div>
               <div className="text-3xl font-extrabold text-white">
                 <AnimatedCounter value={totalSolvers} />
               </div>
-              <div className="text-[11px] text-blue-300 font-medium mt-1 flex items-center gap-1">
-                <Building2 className="w-3 h-3" /> BIT Mesra &bull; IIT ISM
+              <div className="text-[11px] text-amber-200 font-medium mt-1 flex items-center gap-1">
+                <GraduationCap className="w-3.5 h-3.5" /> BIT Mesra &bull; IIT ISM
               </div>
             </PopItem>
 
-            <PopItem delay={0.4} hoverEffect className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/25 hover:-translate-y-1 transition-all duration-300 p-4 sm:p-5 rounded-2xl text-left">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <PopItem delay={0.4} hoverEffect className="bg-white/10 backdrop-blur-md border border-white/15 hover:border-white/30 p-4 sm:p-5 rounded-2xl text-left transition-all">
+              <div className="text-[11px] font-bold text-emerald-200 uppercase tracking-wider mb-1">
                 {t("statsPledgedFunds")}
               </div>
               <div className="text-3xl font-extrabold text-amber-300">₹4.85 Cr</div>
-              <div className="text-[11px] text-slate-400 font-medium mt-1 flex items-center gap-1">
-                <span>Tata Steel &bull; Coal India</span>
+              <div className="text-[11px] text-slate-300 font-medium mt-1 flex items-center gap-1">
+                <Building2 className="w-3 h-3" /> Tata Steel &bull; Coal India
               </div>
             </PopItem>
           </div>
         </div>
       </section>
 
-      {/* 3. Four-Step Collaborative Workflow */}
-      <section className="py-16 bg-white border-b border-slate-200">
+      {/* 3. Quad-Helix Signature Interactive Component */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <QuadHelix />
+      </section>
+
+      {/* 4. Problem Lifecycle: Problem -> Understand -> Verify -> Match -> Solve -> Fund -> Implement -> Impact */}
+      <section className="py-16 bg-[#F5EFE6] border-y border-[#E8DFC8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="text-xs font-bold text-gov-saffron uppercase tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
-              {language === "hi" ? "मानक संचालन प्रक्रिया" : language === "ur" ? "معیاری طریقہ کار" : "Standard Operating Procedure"}
+            <span className="text-xs font-bold text-[#1A3D2F] uppercase tracking-wider bg-white px-3 py-1 rounded-full border border-[#E8DFC8]">
+              Continuous Governance Lifecycle
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 mt-3">
+              From Ground Problem to Measurable Impact
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 mt-2">
+              A transparent, eight-stage progression where technology assists and democratic institutions verify.
+            </p>
+          </div>
+
+          {/* Stepper Timeline Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            {lifecycleSteps.map((step, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl border border-[#E8DFC8] p-4 flex flex-col justify-between hover:border-[#1A3D2F] hover:shadow-md transition-all group"
+              >
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span className="font-mono font-bold text-[#C05621]">{step.num}</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                  </div>
+                  <div className="text-xs font-extrabold text-slate-900 font-serif tracking-tight group-hover:text-[#1A3D2F] transition-colors">
+                    {step.name}
+                  </div>
+                  <div className="text-[11px] text-slate-600 mt-1 leading-snug">
+                    {step.desc}
+                  </div>
+                </div>
+                <div className="mt-3 pt-2 border-t border-[#FAF7F2] text-[10px] font-semibold text-[#1A3D2F]">
+                  {step.role}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. How It Works: The 4 Core Stages */}
+      <section id="how-it-works" className="py-16 bg-white border-b border-[#E8DFC8]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-xs font-bold text-[#C05621] uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+              Standard Operating Procedure
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-3 font-serif">
               {t("howItWorks")}
             </h2>
             <p className="text-sm text-slate-600 mt-2">
-              {language === "hi"
-                ? "नागरिक समस्या रिपोर्टिंग से लेकर आधिकारिक नोडल सत्यापन और बहु-संस्थान परिनियोजन तक।"
-                : language === "ur"
-                ? "شہری مسئلہ رپورٹنگ سے لے کر سرکاری نوڈل افسر کی تصدیق اور ہمہ جہت نفاذ تک۔"
-                : "From on-ground citizen voice intake to official nodal officer verification and multi-institution deployment."}
+              From on-ground citizen voice intake to official nodal officer verification and multi-institution deployment.
             </p>
           </div>
 
@@ -214,10 +275,10 @@ export function HomeClient({
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+              transition={{ duration: 0.3, delay: 0.05 }}
+              className="p-6 rounded-2xl bg-[#FAF7F2] border border-[#E8DFC8] hover:border-[#1A3D2F] hover:shadow-lg transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-blue-100 text-gov-navy flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 text-[#C05621] flex items-center justify-center font-extrabold text-lg mb-4">
                 1
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step1Title")}</h3>
@@ -228,10 +289,10 @@ export function HomeClient({
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="p-6 rounded-2xl bg-[#FAF7F2] border border-[#E8DFC8] hover:border-[#1A3D2F] hover:shadow-lg transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-[#1A3D2F] flex items-center justify-center font-extrabold text-lg mb-4">
                 2
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step2Title")}</h3>
@@ -242,10 +303,10 @@ export function HomeClient({
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+              transition={{ duration: 0.3, delay: 0.15 }}
+              className="p-6 rounded-2xl bg-[#FAF7F2] border border-[#E8DFC8] hover:border-[#1A3D2F] hover:shadow-lg transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center font-extrabold text-lg mb-4">
                 3
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step3Title")}</h3>
@@ -256,10 +317,10 @@ export function HomeClient({
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-gov-navyLight/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+              transition={{ duration: 0.3, delay: 0.2 }}
+              className="p-6 rounded-2xl bg-[#FAF7F2] border border-[#E8DFC8] hover:border-[#1A3D2F] hover:shadow-lg transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-extrabold text-lg mb-4 group-hover:scale-105 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-orange-100 text-[#B45309] flex items-center justify-center font-extrabold text-lg mb-4">
                 4
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{t("step4Title")}</h3>
@@ -269,8 +330,41 @@ export function HomeClient({
         </div>
       </section>
 
-      {/* 4. Featured Priority Challenges */}
-      <section className="py-16 bg-slate-50">
+      {/* 6. AI Problem Intelligence & Explainability Showcase */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <span className="text-xs font-bold text-[#1A3D2F] uppercase tracking-wider bg-[#EFE8DF] px-3 py-1 rounded-full border border-[#E8DFC8]">
+            AI Intelligence & Explainability
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 mt-3">
+            Explainable AI Matrix: Analysis vs. Statutory Sanction
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 mt-2">
+            JanSahaya clearly demarcates statistical machine assistance from sovereign government authority.
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <ProblemIntelligenceCard
+            category="Urban Drainage & Flood Mitigation"
+            severity="CRITICAL"
+            urgencyScore={88}
+            aiConfidence={94}
+            duplicateProbability={6}
+            evidenceStrength={85}
+            district="Ranchi"
+            state="Jharkhand"
+            responsibleAuthority="Ranchi Municipal Corporation (RMC) & DDMA"
+            requiredExpertise={["Hydrology Modeling", "Stormwater Civil Eng", "IoT Sensor Telemetry"]}
+            isVerifiedByGovt={true}
+            verifiedByOfficer="Executive Engineer (UD&HD) • Ranchi District"
+            verifiedAt="Ground Inspection Logged"
+          />
+        </div>
+      </section>
+
+      {/* 7. Featured Priority Ground Challenges */}
+      <section className="py-16 bg-[#F5EFE6] border-t border-[#E8DFC8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div>
@@ -284,26 +378,16 @@ export function HomeClient({
                     : "High-Priority Ground Challenges"}
                 </h2>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                {language === "hi"
-                  ? "गंभीर समस्याएं जिन्हें तत्काल अनुसंधान सहायता एवं सीएसआर अनुदान की आवश्यकता है।"
-                  : language === "ur"
-                  ? "سنگین مسائل جنہیں فوری تحقیقی معاونت اور سی ایس آر فنڈنگ کی ضرورت ہے۔"
-                  : "Real challenges requiring urgent multi-disciplinary research intervention and CSR grants."}
+              <p className="text-xs text-slate-600 mt-1">
+                Real challenges requiring urgent multi-disciplinary research intervention and CSR grants.
               </p>
             </div>
 
             <Link
               href="/challenges"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl shadow-sm transition-colors group"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-[#E8DFC8] hover:bg-[#FAF7F2] text-slate-800 text-xs font-bold rounded-xl shadow-sm transition-colors group"
             >
-              <span>
-                {language === "hi"
-                  ? `सभी ${totalChallenges} समस्याएं देखें`
-                  : language === "ur"
-                  ? `تمام ${totalChallenges} مسائل دیکھیں`
-                  : `Explore All ${totalChallenges} Challenges`}
-              </span>
+              <span>Explore All {totalChallenges} Challenges</span>
               <ArrowRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -317,11 +401,7 @@ export function HomeClient({
                 <PopCard
                   key={item.id}
                   delay={0.1 + idx * 0.05}
-                  className={`bg-white rounded-2xl border ${
-                    isCritical
-                      ? "hover:border-red-400/80 hover:shadow-red-500/10"
-                      : "hover:border-amber-400/80 hover:shadow-amber-500/10"
-                  } shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between p-5 group/card`}
+                  className="bg-white rounded-2xl border border-[#E8DFC8] hover:border-[#1A3D2F] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between p-5"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-3">
@@ -332,7 +412,7 @@ export function HomeClient({
                             : "bg-amber-100 text-amber-800 border border-amber-200"
                         }`}
                       >
-                        {item.severity} {language === "hi" ? "चेतावनी" : language === "ur" ? "الرٹ" : "ALERT"}
+                        {item.severity} ALERT
                       </span>
                       <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
@@ -341,7 +421,7 @@ export function HomeClient({
                     </div>
 
                     <Link href={`/challenges/${item.id}`} className="block group">
-                      <h3 className="text-base font-bold text-slate-900 group-hover:text-gov-navy transition-colors line-clamp-2 leading-snug mb-2">
+                      <h3 className="text-base font-bold text-slate-900 group-hover:text-[#1A3D2F] transition-colors line-clamp-2 leading-snug mb-2 font-serif">
                         {item.title}
                       </h3>
                     </Link>
@@ -355,7 +435,7 @@ export function HomeClient({
                         {tags.slice(0, 3).map((tag: string, tidx: number) => (
                           <span
                             key={tidx}
-                            className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-medium"
+                            className="text-[10px] px-2 py-0.5 bg-[#FAF7F2] border border-[#E8DFC8] text-slate-600 rounded font-medium"
                           >
                             #{tag}
                           </span>
@@ -364,17 +444,17 @@ export function HomeClient({
                     )}
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="pt-3 border-t border-[#EFE8DF] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-3 text-slate-500 font-medium">
-                      <span>💡 {item._count.solutions} {language === "hi" ? "समाधान" : language === "ur" ? "حل" : "Solutions"}</span>
-                      <span>👍 {item._count.upvotes} {language === "hi" ? "समर्थन" : language === "ur" ? "حمایت" : "Votes"}</span>
+                      <span>💡 {item._count.solutions} Solutions</span>
+                      <span>👍 {item._count.upvotes} Votes</span>
                     </div>
 
                     <Link
                       href={`/challenges/${item.id}`}
-                      className="text-xs font-bold text-gov-navy hover:text-gov-navyLight flex items-center gap-1 group/btn"
+                      className="text-xs font-bold text-[#1A3D2F] hover:text-[#2D6A4F] flex items-center gap-1 group/btn"
                     >
-                      <span>{language === "hi" ? "विवरण देखें" : language === "ur" ? "تفصیلات" : "Details"}</span>
+                      <span>Details</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
                   </div>
@@ -385,136 +465,98 @@ export function HomeClient({
         </div>
       </section>
 
-      {/* 5. 7 Differentiators Callout Section */}
-      <section className="py-16 bg-slate-900 text-white">
+      {/* 8. Interactive Civic Problem Map Callout */}
+      <section className="py-16 bg-white border-b border-[#E8DFC8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider bg-amber-950/60 px-3 py-1 rounded-full border border-amber-800">
-              SIH26043 Innovation Pillars
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold font-serif mt-3 text-white">
-              {language === "hi"
-                ? "7 प्रमुख तकनीकी विभेदक"
-                : language === "ur"
-                ? "7 بنیادی تکنیکی خصوصیات"
-                : "The 7 Technological Differentiators"}
-            </h2>
+          <div className="bg-[#1A3D2F] rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-xl z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-bold mb-3 border border-white/20">
+                <Compass className="w-3.5 h-3.5" />
+                <span>Geospatial Disaster Telemetry</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold font-serif leading-tight">
+                Explore the Live Jharkhand Civic Problem Map
+              </h2>
+              <p className="text-xs sm:text-sm text-emerald-100/90 mt-2 leading-relaxed">
+                Filter by flood corridors, subterranean coal fire hotspots, drought clusters, and municipal jurisdiction zones across all 24 districts.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-4">
+                <Link
+                  href="/map"
+                  className="px-6 py-3 rounded-xl bg-[#C05621] hover:bg-[#A94418] text-white text-xs font-extrabold shadow-md transition-all flex items-center gap-2 uppercase tracking-wider"
+                >
+                  <MapPin className="w-4 h-4" />
+                  <span>Launch Interactive Map</span>
+                </Link>
+                <Link
+                  href="/analytics"
+                  className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/25 transition-all flex items-center gap-2"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  <span>District Analytics</span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="w-full md:w-80 h-48 rounded-2xl bg-[#15291F] border border-white/15 p-4 flex flex-col justify-between shadow-inner">
+              <div className="flex items-center justify-between text-xs text-slate-300">
+                <span className="font-bold flex items-center gap-1.5 text-amber-300">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  Live GIS Feed
+                </span>
+                <span className="text-[10px] text-slate-400">24 Districts</span>
+              </div>
+              <div className="space-y-1.5 text-xs text-slate-200">
+                <div className="flex justify-between">
+                  <span>Jharia Coal Fire Zone:</span>
+                  <strong className="text-red-400">Active Telemetry</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>Morabadi Catchment:</span>
+                  <strong className="text-amber-300">Monitored</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>Palamu Water Fluoride:</span>
+                  <strong className="text-emerald-400">Pilot Online</strong>
+                </div>
+              </div>
+              <div className="text-[10px] text-slate-400 pt-2 border-t border-white/10 flex items-center justify-between">
+                <span>Satellite Basemap &bull; Topo</span>
+                <span className="text-amber-300 font-bold">2.4km Buffer</span>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.35, delay: 0.05 }}
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="text-amber-400 font-bold text-sm mb-1">
-                {language === "hi" ? "1. प्रतिरूप पहचान व विलय" : language === "ur" ? "1. نقل کی شناخت اور انضمام" : "1. Duplicate Detection & Merge"}
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {language === "hi"
-                  ? "टीएफ-आईडीएफ एवं कोसाइन समानता नागरिक को सतर्क करती है और नोडल अधिकारियों को विलय कंसोल प्रदान करती है।"
-                  : language === "ur"
-                  ? "ٹی ایف-آئی ڈی ایف مماثلت صارفین کو انتباہ کرتی ہے اور افسران کو انضمام کنسول فراہم کرتی ہے۔"
-                  : "In-engine TF-IDF & Cosine similarity warns users during intake and equips Govt Admins with a side-by-side diff merge console."}
-              </p>
-            </motion.div>
+      {/* 9. Final Citizen Call to Action */}
+      <section className="py-16 bg-[#FAF7F2]">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <span className="text-xs font-bold text-[#C05621] uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+            Civic Participation
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold font-serif text-slate-900 mt-3 mb-2">
+            "By the People. For the People."
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto mb-8 leading-relaxed">
+            Every verified resolution begins with a citizen report. Log an on-ground problem in 60 seconds with photos, voice dictation, and GPS accuracy.
+          </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.35, delay: 0.1 }}
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/challenges/new"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#C05621] hover:bg-[#A94418] text-white font-extrabold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 uppercase tracking-wider"
             >
-              <div className="text-amber-400 font-bold text-sm mb-1">
-                {language === "hi" ? "2. स्वचालित समस्या वर्गीकरण" : language === "ur" ? "2. خودکار درجہ بندی" : "2. Automatic Classification"}
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {language === "hi"
-                  ? "एनएलपी समस्या की गंभीरता (1-100) का आकलन करता है और संबंधित विशेषज्ञ संस्थानों को टैग करता है।"
-                  : language === "ur"
-                  ? "این ایل پی مسائل کی درجہ بندی کرتا ہے اور 1-100 تک ارجنسی اسکور کا حساب لگاتا ہے۔"
-                  : "NLP problem segregation categorizes ground issues, extracts domain keywords, and computes an automated 1-100 urgency score."}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.35, delay: 0.15 }}
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
+              <Mic className="w-4 h-4" />
+              <span>Report a Problem Now</span>
+            </Link>
+            <Link
+              href="/challenges"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-[#FAF7F2] text-slate-800 border border-[#E8DFC8] font-bold text-sm transition-all flex items-center justify-center gap-2"
             >
-              <div className="text-amber-400 font-bold text-sm mb-1">
-                {language === "hi" ? "3. पारदर्शी विशेषज्ञता मिलान" : language === "ur" ? "3. شفاف ماہرانہ میچنگ" : "3. Explainable Expertise Match"}
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {language === "hi"
-                  ? "शोधकर्ताओं (बीआईटी मेसरा, आईआईटी धनबाद) के साथ पूर्ण पारदर्शिता स्कोर के साथ समस्याओं का मिलान।"
-                  : language === "ur"
-                  ? "محققین کے ساتھ مکمل شفافیت کے ساتھ مسائل کو میچ کیا جاتا ہے۔"
-                  : "Multi-factor scoring algorithm matches problems to researchers (BIT Mesra, IIT ISM Dhanbad) with complete transparency bars."}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.35, delay: 0.2 }}
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="text-amber-400 font-bold text-sm mb-1">
-                {language === "hi" ? "4. बहुभाषी वॉयस एआई व अनुवाद" : language === "ur" ? "4. کثیر لسانی وائس اے آئی اور ترجمہ" : "4. AI Voice & Translation"}
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {language === "hi"
-                  ? "अंग्रेजी, हिन्दी और उर्दू में लाइव वॉयस डिक्टेशन तथा संपूर्ण वेबसाइट का त्रि-भाषी अनुवाद।"
-                  : language === "ur"
-                  ? "انگریزی، ہندی اور اردو میں لائیو وائس ڈکٹیشن اور پوری ویب سائٹ کا کثیر لسانی ترجمہ۔"
-                  : "Full English, Hindi & Urdu localization with Web Speech live voice dictation and full-site multilingual translation."}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.35, delay: 0.25 }}
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="text-amber-400 font-bold text-sm mb-1">
-                {language === "hi" ? "5. सरकारी सत्यापन एवं डिजिटल प्रमाण पत्र" : language === "ur" ? "5. سرکاری تصدیق اور ڈیجیٹل سرٹیفکیٹ" : "5. Govt Verification & Certificate"}
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {language === "hi"
-                  ? "जिला नोडल अधिकारी द्वारा डिजिटल ऑडिट ट्रेल, माइलस्टोन साइन-ऑफ तथा मुद्रण योग्य आधिकारिक प्रमाण पत्र।"
-                  : language === "ur"
-                  ? "ڈسٹرکٹ نوڈل آفیسر کی ڈیجیٹل آڈٹ ٹریل اور پرنٹ کے قابل سرکاری سرٹیفکیٹس۔"
-                  : "District Nodal Officer digital audit trail, milestone sign-off, and printable official verification certificates with state seals."}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.35, delay: 0.3 }}
-              className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/[0.08] hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="text-amber-400 font-bold text-sm mb-1">
-                {language === "hi" ? "6. संवादात्मक जीआईएस आपदा मानचित्र" : language === "ur" ? "6. انٹرایکٹو جی آئی ایس نقشہ" : "6. Interactive GIS Disaster Map"}
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {language === "hi"
-                  ? "4 उपग्रह एवं स्थलाकृतिक मानचित्र परतों के साथ 2.4 किमी गंभीर प्रभाव गलियारा बफर जोन।"
-                  : language === "ur"
-                  ? "4 بیس میپس اور 2.4 کلومیٹر خطرے کے بفر زون کے ساتھ لائیو مانیٹرنگ۔"
-                  : "4 satellite & topo basemaps with 2.4km critical hazard corridor buffer zones and live pin drops."}
-              </p>
-            </motion.div>
+              <Search className="w-4 h-4 text-slate-500" />
+              <span>Explore Verified Database</span>
+            </Link>
           </div>
         </div>
       </section>

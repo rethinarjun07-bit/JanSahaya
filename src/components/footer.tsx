@@ -9,12 +9,12 @@ export function Footer() {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-slate-900 text-slate-300 border-t-4 border-gov-saffron">
+    <footer className="bg-[#15291F] text-slate-300 border-t-4 border-[#C05621]">
       {/* 1. Emergency Helpline Bar */}
-      <div className="bg-slate-950 py-3 px-4 border-b border-slate-800">
+      <div className="bg-[#0F1E16] py-3 px-4 border-b border-[#244533]">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3 text-xs">
-          <div className="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider">
-            <PhoneCall className="w-4 h-4" /> 24/7 State Emergency Disaster Helplines:
+          <div className="flex items-center gap-2 text-amber-300 font-bold uppercase tracking-wider">
+            <PhoneCall className="w-4 h-4 text-[#C05621]" /> 24/7 State Emergency Disaster Helplines:
           </div>
           <div className="flex items-center gap-4 flex-wrap text-slate-300 font-medium">
             <span>SDMA Control Room: <strong className="text-white font-mono">1070</strong></span>

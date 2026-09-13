@@ -4,35 +4,35 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 38 25% 97%;
+    --foreground: 155 25% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 38 30% 99%;
+    --card-foreground: 155 25% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 38 30% 99%;
+    --popover-foreground: 155 25% 15%;
 
-    --primary: 214 73% 16%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 155 40% 17%;
+    --primary-foreground: 38 30% 98%;
 
-    --secondary: 35 100% 50%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 28 75% 48%;
+    --secondary-foreground: 38 30% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 36 20% 93%;
+    --muted-foreground: 35 12% 42%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 38 30% 92%;
+    --accent-foreground: 155 40% 17%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 38 30% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 36 18% 88%;
+    --input: 36 18% 88%;
+    --ring: 155 40% 25%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
   }
 }
 
@@ -184,5 +184,24 @@ a,
 
 .animate-pop-in {
   animation: smooth-pop-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Civic warmth and natural paper subtle texture */
+.bg-warm-canvas {
+  background-color: #FAF7F2;
+  background-image: radial-gradient(#E8DFC8 0.6px, transparent 0.6px);
+  background-size: 20px 20px;
+}
+
+/* Accessibility: Respect user reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 

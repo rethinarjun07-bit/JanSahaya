@@ -66,6 +66,7 @@ export async function GET(request: Request) {
         ...c,
         aiTags: c.aiTags ? JSON.parse(c.aiTags) : [],
         mediaUrls: c.mediaUrls ? JSON.parse(c.mediaUrls) : [],
+        sdgGoals: c.sdgGoals ? JSON.parse(c.sdgGoals) : [],
       })),
       total: challenges.length,
     });
@@ -107,12 +108,25 @@ export async function POST(request: Request) {
 
     const data = result.data;
 
-    // Run NLP Classifier
-    const classification = classifyChallenge(data.title, data.description);
+    // Run Hybrid NLP Classifier
+    const classification = classifyChallenge(data.title, data.description, {
+      hasGps: Boolean(data.latitude && data.longitude),
+      mediaCount: data.mediaUrls?.length || 0,
+      hasVoice: Boolean(data.audioUrl || data.voiceTranscript),
+    });
 
     // Fetch existing challenges to run duplicate detection
     const existingChallenges = await db.challenge.findMany({
-      select: { id: true, title: true, description: true, district: true, category: true },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        district: true,
+        category: true,
+        latitude: true,
+        longitude: true,
+        createdAt: true,
+      },
     });
 
     const duplicateCandidates = evaluateDuplicates(
@@ -121,15 +135,27 @@ export async function POST(request: Request) {
         description: data.description,
         district: data.district,
         category: data.category,
+        latitude: data.latitude,
+        longitude: data.longitude,
       },
       existingChallenges,
-      0.65
+      0.45
     );
+
+    const highestDupScore = duplicateCandidates.length > 0 ? duplicateCandidates[0].similarityPercentage : 0;
 
     // Check if university matches
     const matchedUni = await db.university.findFirst({
       where: { code: classification.recommendedUniversity.code },
     });
+
+    // Compute SLA Deadline
+    const now = new Date();
+    let slaHours = 24 * 14; // default 14 days
+    if (classification.severity === "CRITICAL") slaHours = 48; // 48h
+    else if (classification.severity === "HIGH") slaHours = 24 * 7; // 7 days
+    else if (classification.severity === "LOW") slaHours = 24 * 30; // 30 days
+    const slaDeadline = new Date(now.getTime() + slaHours * 60 * 60 * 1000);
 
     const newChallenge = await db.challenge.create({
       data: {
@@ -138,6 +164,14 @@ export async function POST(request: Request) {
         category: data.category || classification.predictedCategory,
         severity: data.severity || classification.severity,
         urgencyScore: classification.urgencyScore,
+        confidenceScore: classification.confidenceScore,
+        duplicateProbability: highestDupScore,
+        evidenceStrength: classification.evidenceStrength,
+        priorityScore: classification.priorityScore,
+        recommendedDepartment: classification.recommendedDepartment,
+        sdgGoals: JSON.stringify(classification.sdgGoals),
+        slaDeadline,
+        slaStatus: "ON_TRACK",
         status: "SUBMITTED",
         latitude: data.latitude,
         longitude: data.longitude,
@@ -169,7 +203,11 @@ export async function POST(request: Request) {
         details: JSON.stringify({
           severity: newChallenge.severity,
           urgencyScore: newChallenge.urgencyScore,
+          confidenceScore: newChallenge.confidenceScore,
+          evidenceStrength: newChallenge.evidenceStrength,
+          priorityScore: newChallenge.priorityScore,
           duplicateWarningCount: duplicateCandidates.length,
+          slaDeadline: slaDeadline.toISOString(),
         }),
       },
     });
@@ -179,6 +217,7 @@ export async function POST(request: Request) {
       challenge: {
         ...newChallenge,
         aiTags: JSON.parse(newChallenge.aiTags || "[]"),
+        sdgGoals: JSON.parse(newChallenge.sdgGoals || "[]"),
       },
       duplicatesDetected: duplicateCandidates,
     });

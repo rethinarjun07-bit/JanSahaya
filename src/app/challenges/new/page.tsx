@@ -552,58 +552,58 @@ export default function NewChallengePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FAF7F2] py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Breadcrumb Header */}
         <div className="flex items-center justify-between mb-4">
           <Link
             href="/challenges"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-gov-navy transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#1A3D2F] transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Catalog
           </Link>
-          <span className="text-xs font-bold text-slate-400">Step {step} of 4</span>
+          <span className="text-xs font-bold text-slate-500">Step {step} of 4</span>
         </div>
 
         {/* Wizard Progress Bar */}
-        <div className="w-full h-2 bg-slate-200 rounded-full mb-8 overflow-hidden">
+        <div className="w-full h-2.5 bg-[#E8DFC8] rounded-full mb-8 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-gov-navy via-gov-navyLight to-gov-saffron transition-all duration-300"
+            className="h-full bg-gradient-to-r from-[#1A3D2F] to-[#C05621] transition-all duration-300 rounded-full"
             style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
 
         {/* Main Form Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8">
-          <div className="mb-6 pb-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+        <div className="bg-white rounded-3xl border border-[#E8DFC8] shadow-sm p-6 sm:p-8">
+          <div className="mb-6 pb-4 border-b border-[#EFE8DF] flex items-center justify-between flex-wrap gap-2">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-gov-saffron bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#C05621] bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
                   Citizen & Field Ground Intake
                 </span>
                 <span className="text-xs font-semibold text-slate-400">&bull;</span>
-                <span className="text-[11px] font-semibold text-slate-500">
+                <span className="text-[11px] font-semibold text-slate-600">
                   Disaster Mitigation Cell (SIH26043)
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 font-serif">
                 {t("newChallengeHeading")}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1">
                 {t("newChallengeSubheading")}
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs flex-wrap">
-              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 1 ? "bg-gov-navy text-white shadow-sm" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 1 ? "bg-[#1A3D2F] text-white shadow-sm" : "bg-[#FAF7F2] text-slate-600 border border-[#E8DFC8]"}`}>
                 {t("wizardStep1")}
               </span>
-              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 2 ? "bg-gov-navy text-white shadow-sm" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 2 ? "bg-[#1A3D2F] text-white shadow-sm" : "bg-[#FAF7F2] text-slate-600 border border-[#E8DFC8]"}`}>
                 {t("wizardStep2")}
               </span>
-              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 3 ? "bg-gov-navy text-white shadow-sm" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 3 ? "bg-[#1A3D2F] text-white shadow-sm" : "bg-[#FAF7F2] text-slate-600 border border-[#E8DFC8]"}`}>
                 {t("wizardStep3")}
               </span>
-              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 4 ? "bg-gov-navy text-white shadow-sm" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`px-3 py-1.5 rounded-xl font-bold transition-all ${step === 4 ? "bg-[#1A3D2F] text-white shadow-sm" : "bg-[#FAF7F2] text-slate-600 border border-[#E8DFC8]"}`}>
                 {t("wizardStep4")}
               </span>
             </div>

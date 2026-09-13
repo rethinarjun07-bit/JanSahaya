@@ -38,7 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${notoSans.variable}`}>
-      <body className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased selection:bg-amber-100 selection:text-amber-900">
+      <body className="min-h-screen bg-[#FAF7F2] text-slate-900 flex flex-col font-sans antialiased selection:bg-amber-100 selection:text-amber-900">
         <LanguageProvider>
           <AuthProvider>
             <ClickEffectProvider />

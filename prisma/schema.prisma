@@ -66,6 +66,19 @@ model Challenge {
   assignedUniversityId    String?
   assignedDepartment      String?
   viewCount               Int              @default(0)
+  confidenceScore         Int              @default(85) // 0-100%
+  duplicateProbability    Int              @default(0)  // 0-100%
+  evidenceStrength        Int              @default(75) // 0-100%
+  priorityScore           Int              @default(60) // 0-100%
+  recommendedDepartment   String?          // e.g. PHED, Disaster Management, Road Construction
+  slaDeadline             DateTime?
+  slaStatus               String           @default("ON_TRACK") // ON_TRACK, APPROACHING, BREACHED, ESCALATED
+  sdgGoals                String?          // JSON array of UN SDG strings
+  selectedSolutionId      String?
+  citizenFeedback         String?          // SOLVED, PARTIALLY_SOLVED, NOT_SOLVED
+  citizenFeedbackNotes    String?
+  impactScore             Int?             // 0-100
+  beneficiariesCount      Int              @default(0)
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
 
@@ -112,6 +125,12 @@ model Solution {
   govtEndorsed      Boolean          @default(false)
   endorsedBy        String?
   endorsedAt        DateTime?
+  aiRecommendationVerdict String?    // RECOMMENDED, FEASIBLE, ALTERNATIVE
+  feasibilityScore  Float            @default(4.0)
+  costEffectivenessScore Float       @default(4.0)
+  csrFundingStatus  String           @default("UNFUNDED") // UNFUNDED, PLEDGED, FUNDED
+  csrFunderName     String?
+  csrAmountPledged  Float?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
@@ -213,4 +232,19 @@ model AuditLog {
   actorName      String
   details        String?          // JSON
   createdAt      DateTime         @default(now())
+}
+
+model CivicCluster {
+  id             String           @id @default(cuid())
+  name           String
+  category       String
+  district       String
+  latitude       Float
+  longitude      Float
+  radiusKm       Float            @default(2.5)
+  reportCount    Int              @default(1)
+  urgencyScore   Int              @default(70)
+  challengeIds   String           // JSON array of challenge IDs
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }

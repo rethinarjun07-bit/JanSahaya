@@ -111,10 +111,59 @@ export interface DuplicateCandidate {
   matchingKeywords: string[];
 }
 
+export function calculateHaversineDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return 999;
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Number((R * c).toFixed(2));
+}
+
+export interface DuplicateCandidate {
+  id: string;
+  title: string;
+  district: string;
+  category: string;
+  distanceKm?: number;
+  similarityPercentage: number;
+  confidence: "VERY_HIGH" | "HIGH" | "MODERATE" | "LOW";
+  matchingKeywords: string[];
+  reasons: string[];
+}
+
 export function evaluateDuplicates(
-  target: { title: string; description: string; district?: string; category?: string },
-  corpus: Array<{ id: string; title: string; description: string; district?: string; category?: string }>,
-  threshold: number = 0.45
+  target: {
+    title: string;
+    description: string;
+    district?: string;
+    category?: string;
+    latitude?: number;
+    longitude?: number;
+    createdAt?: Date | string;
+  },
+  corpus: Array<{
+    id: string;
+    title: string;
+    description: string;
+    district?: string;
+    category?: string;
+    latitude?: number;
+    longitude?: number;
+    createdAt?: Date | string;
+  }>,
+  threshold: number = 0.40
 ): DuplicateCandidate[] {
   const targetText = `${target.title} ${target.title} ${target.description}`;
   const targetTokens = tokenize(targetText);
@@ -132,17 +181,54 @@ export function evaluateDuplicates(
     const itemTF = computeTF(itemTokens);
 
     const { score: rawCosine, commonKeywords } = cosineSimilarity(targetTF, itemTF, idf);
+    const reasons: string[] = [];
 
-    // Location & Category boost
+    // 1. Text similarity
     let finalScore = rawCosine;
-    if (target.district && item.district && target.district.toLowerCase() === item.district.toLowerCase()) {
-      finalScore += 0.15;
+    if (rawCosine > 0.4) {
+      reasons.push(`${Math.round(rawCosine * 100)}% vocabulary & phrase overlap`);
     }
+
+    // 2. Geospatial proximity
+    let distanceKm: number | undefined = undefined;
+    if (target.latitude && target.longitude && item.latitude && item.longitude) {
+      distanceKm = calculateHaversineDistanceKm(
+        target.latitude,
+        target.longitude,
+        item.latitude,
+        item.longitude
+      );
+      if (distanceKm <= 1.0) {
+        finalScore += 0.20;
+        reasons.push(`Close proximity: ${distanceKm} km away`);
+      } else if (distanceKm <= 3.5) {
+        finalScore += 0.12;
+        reasons.push(`Nearby vicinity: ${distanceKm} km away`);
+      }
+    } else if (target.district && item.district && target.district.toLowerCase() === item.district.toLowerCase()) {
+      finalScore += 0.10;
+      reasons.push(`Same administrative district (${target.district})`);
+    }
+
+    // 3. Category match
     if (target.category && item.category && target.category.toLowerCase() === item.category.toLowerCase()) {
       finalScore += 0.10;
+      reasons.push(`Same civic sector: ${target.category}`);
     }
 
-    // Cap at 0.99 unless identical
+    // 4. Temporal proximity (within 30 days)
+    if (target.createdAt && item.createdAt) {
+      const diffDays = Math.abs(
+        (new Date(target.createdAt).getTime() - new Date(item.createdAt).getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
+      if (diffDays <= 7) {
+        finalScore += 0.08;
+        reasons.push("Reported within 7 days of each other");
+      }
+    }
+
+    // Cap at 0.99 unless exact
     const similarityPercentage = Math.round(Math.min(0.99, finalScore) * 100);
 
     if (similarityPercentage >= threshold * 100) {
@@ -156,12 +242,90 @@ export function evaluateDuplicates(
         title: item.title,
         district: item.district || "Unknown",
         category: item.category || "General",
+        distanceKm,
         similarityPercentage,
         confidence,
         matchingKeywords: Array.from(new Set(commonKeywords)).slice(0, 6),
+        reasons,
       });
     }
   }
 
   return candidates.sort((a, b) => b.similarityPercentage - a.similarityPercentage);
 }
+
+export interface CivicClusterResult {
+  clusterName: string;
+  category: string;
+  district: string;
+  latitude: number;
+  longitude: number;
+  reportCount: number;
+  urgencyScore: number;
+  challengeIds: string[];
+  challengeTitles: string[];
+  approximateAffectedPopulation: string;
+}
+
+export function detectCivicClusters(
+  challenges: Array<{
+    id: string;
+    title: string;
+    category: string;
+    district: string;
+    latitude: number;
+    longitude: number;
+    urgencyScore: number;
+  }>,
+  radiusKm: number = 2.5
+): CivicClusterResult[] {
+  const clusters: CivicClusterResult[] = [];
+  const visited = new Set<string>();
+
+  for (let i = 0; i < challenges.length; i++) {
+    const root = challenges[i];
+    if (visited.has(root.id)) continue;
+
+    const group = [root];
+    for (let j = i + 1; j < challenges.length; j++) {
+      const candidate = challenges[j];
+      if (visited.has(candidate.id)) continue;
+      if (candidate.category !== root.category) continue;
+
+      const dist = calculateHaversineDistanceKm(
+        root.latitude,
+        root.longitude,
+        candidate.latitude,
+        candidate.longitude
+      );
+
+      if (dist <= radiusKm) {
+        group.push(candidate);
+      }
+    }
+
+    if (group.length >= 2) {
+      group.forEach((c) => visited.add(c.id));
+
+      const avgLat = group.reduce((sum, c) => sum + c.latitude, 0) / group.length;
+      const avgLng = group.reduce((sum, c) => sum + c.longitude, 0) / group.length;
+      const maxUrgency = Math.max(...group.map((c) => c.urgencyScore));
+
+      clusters.push({
+        clusterName: `Emerging Civic Cluster: ${root.category} in ${root.district}`,
+        category: root.category,
+        district: root.district,
+        latitude: Number(avgLat.toFixed(4)),
+        longitude: Number(avgLng.toFixed(4)),
+        reportCount: group.length,
+        urgencyScore: Math.min(98, maxUrgency + group.length * 3),
+        challengeIds: group.map((c) => c.id),
+        challengeTitles: group.map((c) => c.title),
+        approximateAffectedPopulation: `Estimated ~${group.length * 450} to ${group.length * 1200} citizens in 2.5km vicinity`,
+      });
+    }
+  }
+
+  return clusters.sort((a, b) => b.reportCount - a.reportCount);
+}
+

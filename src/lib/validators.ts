@@ -79,9 +79,41 @@ export const ReviewSchema = z.object({
 
 export const VerificationSchema = z.object({
   challengeId: z.string().min(1),
-  status: z.enum(["VERIFIED", "REJECTED", "ASSIGNED"]),
+  status: z.enum([
+    "VERIFIED",
+    "NEEDS_MORE_EVIDENCE",
+    "REJECTED",
+    "ASSIGNED",
+    "DUPLICATE",
+    "ESCALATED",
+    "IN_PROGRESS",
+    "SOLVED",
+    "CLOSED",
+  ]),
   officialNotes: z.string().min(5, "Official remarks required"),
   assignedUniversityId: z.string().optional(),
   assignedDepartment: z.string().optional(),
   verifiedSeverity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
 });
+
+export const SolutionSelectionSchema = z.object({
+  challengeId: z.string().min(1),
+  selectedSolutionId: z.string().min(1),
+  governmentDecisionReason: z.string().min(10, "Statutory decision reason required"),
+});
+
+export const CitizenFeedbackSchema = z.object({
+  challengeId: z.string().min(1),
+  feedback: z.enum(["SOLVED", "PARTIALLY_SOLVED", "NOT_SOLVED"]),
+  notes: z.string().optional(),
+  satisfactionRating: z.number().min(1).max(5).optional(),
+});
+
+export const CSRPledgeSchema = z.object({
+  challengeId: z.string().min(1),
+  solutionId: z.string().optional(),
+  funderName: z.string().min(2),
+  amountPledged: z.number().positive(),
+  notes: z.string().optional(),
+});
+

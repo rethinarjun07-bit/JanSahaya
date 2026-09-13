@@ -33,6 +33,7 @@ import dynamic from "next/dynamic";
 import { ExplainableCard } from "@/components/explainable-card";
 import { ExplainableMatch } from "@/lib/nlp/matcher";
 import { WorkspaceModal } from "@/components/workspace-modal";
+import { ProblemIntelligenceCard } from "@/components/problem-intelligence-card";
 import { triggerConfetti } from "@/components/celebration-effects";
 import { sound } from "@/lib/sound";
 import type { LeafletMapProps, MapChallengeItem } from "@/components/leaflet-map";
@@ -75,6 +76,8 @@ export function ChallengeDetailClient({ challenge }: ChallengeDetailProps) {
   const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
   const [selectedImageModal, setSelectedImageModal] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     // Check if user already upvoted
@@ -277,8 +280,126 @@ export function ChallengeDetailClient({ challenge }: ChallengeDetailProps) {
           </div>
         )}
 
+        {/* Continuous Governance Lifecycle Stepper */}
+        <div className="bg-white rounded-3xl border border-[#E8DFC8] p-5 shadow-sm">
+          <div className="flex items-center justify-between text-xs mb-3">
+            <span className="font-bold uppercase tracking-wider text-[#1A3D2F]">
+              Governance & Resolution Lifecycle
+            </span>
+            <span className="font-mono text-slate-500 font-semibold">
+              Current Stage: {challenge.status}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1.5 text-center">
+            {[
+              "REPORTED",
+              "AI CLASSIFIED",
+              "GOVT VERIFIED",
+              "ASSIGNED",
+              "SOLUTION PROPOSED",
+              "FUNDING",
+              "IMPLEMENTATION",
+              "SOLVED",
+              "IMPACT VERIFIED",
+            ].map((st, sidx) => {
+              const isPastOrCurrent =
+                sidx <= 1 ||
+                (sidx === 2 && (challenge.verifiedAt || challenge.status !== "PENDING")) ||
+                (sidx === 3 && (challenge.status === "ASSIGNED" || challenge.status === "IN_PROGRESS" || challenge.status === "SOLVED")) ||
+                (sidx === 4 && challenge.solutions && challenge.solutions.length > 0) ||
+                (sidx === 5 && (challenge.status === "IN_PROGRESS" || challenge.status === "SOLVED")) ||
+                (sidx === 6 && (challenge.status === "IN_PROGRESS" || challenge.status === "SOLVED")) ||
+                (sidx === 7 && challenge.status === "SOLVED") ||
+                (sidx === 8 && challenge.status === "SOLVED");
+
+              return (
+                <div
+                  key={sidx}
+                  className={`p-2 rounded-xl text-[10px] font-bold transition-all ${
+                    isPastOrCurrent
+                      ? "bg-[#1A3D2F] text-white shadow-xs"
+                      : "bg-[#FAF7F2] text-slate-400 border border-[#E8DFC8]"
+                  }`}
+                >
+                  <span className="block text-[9px] opacity-75">{sidx + 1}</span>
+                  <span className="truncate block mt-0.5">{st}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Explainable Problem Intelligence Card — with live V2 data */}
+        <ProblemIntelligenceCard
+          category={challenge.category}
+          severity={challenge.severity}
+          urgencyScore={challenge.urgencyScore}
+          aiConfidence={challenge.confidenceScore ?? 88}
+          duplicateProbability={challenge.duplicateProbability ?? (challenge.masterChallengeId ? 88 : 8)}
+          evidenceStrength={challenge.evidenceStrength ?? (challenge.mediaUrls?.length > 0 ? 88 : 72)}
+          priorityScore={challenge.priorityScore ?? 74}
+          district={challenge.district}
+          state={challenge.state}
+          responsibleAuthority={challenge.recommendedDepartment || "District Disaster Management Authority (DDMA)"}
+          requiredExpertise={challenge.aiTags.length > 0 ? challenge.aiTags : ["Civil Drainage", "Hydrology", "Sensor Telemetry"]}
+          sdgGoals={Array.isArray(challenge.sdgGoals) ? challenge.sdgGoals : []}
+          slaStatus={challenge.slaStatus}
+          slaDeadline={challenge.slaDeadline}
+          isVerifiedByGovt={Boolean(challenge.verifiedAt)}
+          verifiedByOfficer={challenge.verifiedAt ? "Nodal Officer • Dept. of Disaster Management" : "Pending Nodal Inspection"}
+          verifiedAt={challenge.verifiedAt ? new Date(challenge.verifiedAt).toLocaleDateString() : "Pending Inspection"}
+        />
+
+        {/* Citizen Resolution Feedback Widget */}
+        {(challenge.status === "SOLVED" || challenge.status === "IN_PROGRESS") && !feedbackSubmitted && (
+          <div className="bg-[#FAF7F2] border border-[#E8DFC8] rounded-3xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-7 h-7 rounded-xl bg-[#1A3D2F] flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-white" />
+              </span>
+              <div>
+                <div className="text-xs font-bold text-[#1A3D2F] uppercase tracking-wider">Citizen Resolution Verification</div>
+                <div className="text-xs text-slate-500">You reported this problem. Has it been resolved on the ground?</div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["SOLVED", "PARTIALLY_SOLVED", "NOT_SOLVED"] as const).map((opt) => (
+                <button
+                  key={opt}
+                  disabled={submittingFeedback}
+                  onClick={async () => {
+                    setSubmittingFeedback(true);
+                    try {
+                      await fetch(`/api/challenges/${challenge.id}/feedback`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ feedback: opt }),
+                      });
+                      setFeedbackSubmitted(true);
+                    } catch {}
+                    finally { setSubmittingFeedback(false); }
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
+                    opt === "SOLVED" ? "bg-[#1A3D2F] text-white border-[#1A3D2F]" :
+                    opt === "PARTIALLY_SOLVED" ? "bg-amber-50 text-amber-800 border-amber-300" :
+                    "bg-red-50 text-red-700 border-red-200"
+                  }`}
+                >
+                  {opt === "SOLVED" ? "✓ Resolved on Ground" : opt === "PARTIALLY_SOLVED" ? "⚠ Partially Resolved" : "✗ Still Unresolved — Reopen"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {feedbackSubmitted && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm font-semibold text-emerald-800 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" />
+            Thank you! Your on-ground verification has been recorded and will update the challenge status.
+          </div>
+        )}
+
         {/* Top Header Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <div className="bg-white rounded-3xl border border-[#E8DFC8] shadow-sm p-6 sm:p-8">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
             <div className="flex items-center gap-2 flex-wrap">
               <span
