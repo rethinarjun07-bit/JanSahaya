@@ -14,19 +14,28 @@
 # production
 /build
 
+# environment files
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# secrets, keys, and cloud credentials
+*.pem
+*.key
+*.pfx
+*.p12
+service-account*.json
+credentials*.json
+
 # misc
 .DS_Store
-*.pem
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# local env files
-.env*.local
-.env
-.env.*
 
 # vercel
 .vercel
@@ -38,6 +47,10 @@ next-env.d.ts
 # SQLite journal & DBs
 *.db-journal
 *.db
+*.sqlite
+*.sqlite3
+prisma/*.db
+prisma/*.db-journal
 
 # Python
 backend/venv/
@@ -55,5 +68,3 @@ __pycache__/
 
 # Extracted archives
 jansamadhan-sih26043-master/
-
-.vscode/

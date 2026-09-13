@@ -1,12 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const JWT_SECRET = process.env.JWT_SECRET || "jansahaya-v2-production-jwt-signing-secret-gov-jharkhand";
+const JWT_SECRET =
+  process.env.JWT_SECRET?.trim() ||
+  (process.env.NODE_ENV === "production" ? "" : "jansahaya-dev-local-only-jwt-secret-key-32chars");
 
 // ---------------------------------------------------------------------------
 // Edge-compatible HMAC-SHA256 JWT verification
 // ---------------------------------------------------------------------------
 async function verifyJWT(token: string): Promise<Record<string, unknown> | null> {
   try {
+    if (!JWT_SECRET) return null;
     const parts = token.split(".");
     if (parts.length !== 3) return null;
 
@@ -72,12 +75,41 @@ function extractToken(request: NextRequest): string | null {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ── 1. Redirect /analytics/report to /analytics ─────────────────────────
+  // ── 1. CSRF Defense-in-Depth for State-Changing API Requests ──────────────
+  if (
+    ["POST", "PUT", "PATCH", "DELETE"].includes(request.method) &&
+    pathname.startsWith("/api/")
+  ) {
+    const origin = request.headers.get("origin");
+    const host = request.headers.get("host");
+
+    if (origin && host) {
+      const originHost = origin.replace(/^https?:\/\//, "").split("/")[0];
+      const customOrigins = (process.env.CORS_ORIGINS || "")
+        .split(",")
+        .map((o) => o.trim().replace(/^https?:\/\//, "").split("/")[0])
+        .filter(Boolean);
+
+      const allowedHosts = new Set([host, "localhost:3000", "127.0.0.1:3000", "localhost:8000", ...customOrigins]);
+
+      if (!allowedHosts.has(originHost)) {
+        return NextResponse.json(
+          {
+            error: "Forbidden: CSRF verification failed. Request origin is not permitted.",
+            code: "CSRF_ORIGIN_REJECTED",
+          },
+          { status: 403 }
+        );
+      }
+    }
+  }
+
+  // ── 2. Redirect /analytics/report to /analytics ───────────────────────────
   if (pathname.startsWith("/analytics/report")) {
     return NextResponse.redirect(new URL("/analytics", request.url));
   }
 
-  // ── 2. Protect Admin API routes (/api/admin/*) ───────────────────────────
+  // ── 3. Protect Admin API routes (/api/admin/*) ───────────────────────────
   if (pathname.startsWith("/api/admin")) {
     const token = extractToken(request);
 
@@ -112,13 +144,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ── 3. Protect page routes based on role ─────────────────────────────────
+  // ── 4. Protect page routes based on role ─────────────────────────────────
   const matchedRoute = PROTECTED_PAGE_ROUTES.find((r) => pathname.startsWith(r.prefix));
   if (matchedRoute) {
     const token = extractToken(request);
 
     if (!token) {
-      // Redirect to the role-specific login portal
       const loginUrl = new URL(matchedRoute.loginPath, request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
@@ -126,7 +157,6 @@ export async function middleware(request: NextRequest) {
 
     const payload = await verifyJWT(token);
     if (!payload) {
-      // Token is invalid/expired — clear cookies and redirect to role-specific login
       const loginUrl = new URL(matchedRoute.loginPath, request.url);
       loginUrl.searchParams.set("expired", "1");
       const res = NextResponse.redirect(loginUrl);
@@ -136,7 +166,6 @@ export async function middleware(request: NextRequest) {
 
     const userRole = payload.role as string;
     if (!matchedRoute.roles.includes(userRole)) {
-      // User is logged in but doesn't have the required role — send to correct portal
       const loginUrl = new URL(matchedRoute.loginPath, request.url);
       loginUrl.searchParams.set("unauthorized", "1");
       loginUrl.searchParams.set("currentRole", userRole);
@@ -144,7 +173,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ── 4. Auth-required routes (any authenticated user) ─────────────────────
+  // ── 5. Auth-required routes (any authenticated user) ─────────────────────
   const needsAuth = AUTH_REQUIRED_ROUTES.some((r) => pathname.startsWith(r));
   if (needsAuth) {
     const token = extractToken(request);
@@ -155,7 +184,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ── 5. Apply rigorous security headers to all responses ──────────────────
+  // ── 6. Apply rigorous security headers to all responses ──────────────────
   const response = NextResponse.next();
 
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
@@ -168,20 +197,19 @@ export async function middleware(request: NextRequest) {
   );
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; img-src 'self' data: blob: https:; connect-src 'self' https:;"
+    "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'self';"
   );
+
+  // Enforce HSTS in production environments
+  if (process.env.NODE_ENV === "production") {
+    response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  }
 
   return response;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, images, fonts
-     */
     "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

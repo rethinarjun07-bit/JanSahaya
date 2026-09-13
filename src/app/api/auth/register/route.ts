@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import { hashPassword, generateToken } from "@/lib/auth";
+import { hashPassword, generateToken, AUTH_COOKIE_OPTIONS } from "@/lib/auth";
 import { RegisterSchema } from "@/lib/validators";
 import { SELF_REGISTERABLE_ROLES } from "@/lib/rbac";
-
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60,
-};
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 export async function POST(request: Request) {
   try {
+    // ── 1. Rate Limiting Check ──────────────────────────────────────────────
+    const clientIp = getClientIp(request);
+    const rl = checkRateLimit(clientIp, RATE_LIMIT_BUCKETS.AUTH);
+    if (!rl.success) {
+      return createRateLimitResponse(
+        rl.reset,
+        "Too many registration attempts. Please try again later."
+      );
+    }
+
+    // ── 2. Input Validation ────────────────────────────────────────────────
     const body = await request.json();
     const result = RegisterSchema.safeParse(body);
     if (!result.success) {
@@ -25,8 +30,8 @@ export async function POST(request: Request) {
 
     const data = result.data;
 
-    // ── Security: ADMIN accounts cannot be self-registered via public endpoint ──
-    // ADMIN accounts are created only via the seed script or secure internal tools.
+    // ── 3. Role Security Gate ──────────────────────────────────────────────
+    // ADMIN accounts cannot be self-registered via public endpoint
     if (!SELF_REGISTERABLE_ROLES.includes(data.role as "CITIZEN" | "SOLVER" | "INDUSTRY")) {
       return NextResponse.json(
         {
@@ -93,14 +98,13 @@ export async function POST(request: Request) {
         state: user.state,
         karmaPoints: user.karmaPoints,
       },
-      token,
     });
 
-    response.cookies.set("jansahaya_token", token, COOKIE_OPTIONS);
+    response.cookies.set("jansahaya_token", token, AUTH_COOKIE_OPTIONS);
 
     return response;
   } catch (error: unknown) {
-    console.error("Register Error:", error);
+    safeLog.error("Register Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

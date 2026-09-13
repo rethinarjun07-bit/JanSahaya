@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import { generateToken } from "@/lib/auth";
+import { generateToken, AUTH_COOKIE_OPTIONS } from "@/lib/auth";
 import { DEMO_ALLOWED_ROLES } from "@/lib/rbac";
-
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60,
-};
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 const ROLE_EMAILS: Record<string, string> = {
   CITIZEN:  "citizen@demo.in",
@@ -19,7 +13,7 @@ const ROLE_EMAILS: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
-  // ── Security Gate: Demo mode must be explicitly enabled ──────────────────
+  // ── 1. Security Gate: Demo mode must be explicitly enabled ──────────────────
   if (process.env.DEMO_MODE !== "true") {
     return NextResponse.json(
       {
@@ -30,11 +24,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // ── 2. Rate Limiting ────────────────────────────────────────────────────────
+  const clientIp = getClientIp(request);
+  const rl = checkRateLimit(clientIp, RATE_LIMIT_BUCKETS.AUTH);
+  if (!rl.success) {
+    return createRateLimitResponse(rl.reset, "Too many role switch requests. Please wait.");
+  }
+
   try {
     const body = await request.json();
     const roleKey = (body.role || "").toUpperCase();
 
-    // ── Security: Block ADMIN role from demo-switch ───────────────────────
+    // ── 3. Security: Block ADMIN role from demo-switch ───────────────────────
     if (!DEMO_ALLOWED_ROLES.includes(roleKey as "CITIZEN" | "SOLVER" | "INDUSTRY")) {
       return NextResponse.json(
         {
@@ -85,12 +86,12 @@ export async function POST(request: Request) {
       avatar: user.avatar,
     };
 
-    const response = NextResponse.json({ success: true, user: userData, token });
-    response.cookies.set("jansahaya_token", token, COOKIE_OPTIONS);
+    const response = NextResponse.json({ success: true, user: userData });
+    response.cookies.set("jansahaya_token", token, AUTH_COOKIE_OPTIONS);
 
     return response;
   } catch (error: unknown) {
-    console.error("Demo Switch Error:", error);
+    safeLog.error("Demo Switch Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

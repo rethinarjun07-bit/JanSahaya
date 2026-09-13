@@ -1,51 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { getUserFromRequest } from "@/lib/auth";
+import { VoiceReportInputSchema } from "@/lib/validators";
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 export async function POST(request: NextRequest) {
   try {
-    const { transcript, language } = await request.json();
+    // ── 1. Rate Limiting ────────────────────────────────────────────────────
+    const tokenUser = await getUserFromRequest(request);
+    const clientIp = getClientIp(request);
+    const bucket = tokenUser ? RATE_LIMIT_BUCKETS.AI_AUTHED : RATE_LIMIT_BUCKETS.AI_ANON;
+    const identifier = tokenUser ? `user:${tokenUser.userId}` : `ip:${clientIp}`;
+    const rl = checkRateLimit(identifier, bucket);
 
-    if (!transcript?.trim()) {
-      return NextResponse.json({ error: "Transcript is required" }, { status: 400 });
+    if (!rl.success) {
+      return createRateLimitResponse(rl.reset, "Voice report rate limit exceeded. Please wait.");
     }
 
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.includes("Demo")) {
+    // ── 2. Input Validation ────────────────────────────────────────────────
+    const body = await request.json();
+    const result = VoiceReportInputSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { transcript, language } = result.data;
+
+    // ── 3. Check for API key or use local engine ───────────────────────────
+    const apiKey = (process.env.GEMINI_API_KEY || "").replace(/^["']|["']$/g, "").trim();
+    if (!apiKey || apiKey.includes("Demo") || apiKey.includes("your_gemini")) {
       return NextResponse.json(demoVoiceResponse(transcript));
     }
 
-    const prompt = `You are a disaster report assistant for Jharkhand, India.
-The user spoke in ${language || "an Indian language (Hindi, Santali, English, or Bengali)"}.
+    const client = new GoogleGenAI({ apiKey });
+    const sanitizedTranscript = transcript.slice(0, 4000).replace(/["\\]/g, " ");
 
-Their voice message was transcribed as:
-"${transcript}"
-
-Extract structured disaster report information and respond in JSON:
+    const systemInstruction = `You are a disaster report assistant for Jharkhand, India.
+Extract structured disaster report information and respond in strict JSON matching this schema:
 {
   "detectedLanguage": "English/Hindi/Santali/Bengali",
-  "translatedText": "English translation of what they said",
+  "translatedText": "English translation of what was said",
   "title": "Short challenge title in English (max 80 chars)",
   "description": "Detailed description of the incident in English",
   "category": "one of: Flood & Inundation | Disaster Management | Mining & Geology | Health & Hazardous Waste | Infrastructure & Municipal | Environment & Forestry | Water & Sanitation | Drought & Groundwater Depletion | Agriculture & Rural Development | Mining Subsidence & Underground Fires",
   "severity": "CRITICAL | HIGH | MEDIUM | LOW",
   "district": "Jharkhand district name if mentioned, else empty string",
   "keywords": ["array", "of", "key", "terms"]
-}
+}`;
 
-Be generous — if they mention water/rain/flooding → Flood & Inundation. Mining/coal/fire underground → Mining Subsidence.`;
-
-    const apiKey = (process.env.GEMINI_API_KEY || "").replace(/^["']|["']$/g, "").trim();
-    const client = new GoogleGenAI({ apiKey });
+    const userPrompt = `Voice transcript (Spoken in ${language || "Indian language"}):
+"""
+${sanitizedTranscript}
+"""`;
 
     const response = await client.models.generateContent({
-      model: "gemini-3.7-flash",
-      contents: prompt,
-      config: { responseMimeType: "application/json", maxOutputTokens: 400 },
+      model: "gemini-2.0-flash",
+      contents: userPrompt,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        maxOutputTokens: 400,
+      },
     });
 
-    const result = JSON.parse(response.text || "{}");
-    return NextResponse.json({ success: true, ...result });
+    const parsedResult = JSON.parse(response.text || "{}");
+    return NextResponse.json({ success: true, ...parsedResult });
   } catch (error) {
-    console.error("Voice report error:", error);
+    safeLog.error("Voice report error:", error);
     return NextResponse.json({ error: "Voice processing failed" }, { status: 500 });
   }
 }

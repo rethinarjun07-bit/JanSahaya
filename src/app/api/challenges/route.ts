@@ -4,6 +4,8 @@ import { getUserFromRequest } from "@/lib/auth";
 import { ChallengeSchema } from "@/lib/validators";
 import { classifyChallenge } from "@/lib/nlp/classifier";
 import { evaluateDuplicates } from "@/lib/nlp/tfidf";
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -102,10 +104,28 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getUserFromRequest(request);
+    const clientIp = getClientIp(request);
+    const identifier = session ? `user:${session.userId}` : `ip:${clientIp}`;
+
+    // ── Rate Limiting Check ────────────────────────────────────────────────
+    const rl = checkRateLimit(identifier, RATE_LIMIT_BUCKETS.CHALLENGE_CREATE);
+    if (!rl.success) {
+      return createRateLimitResponse(rl.reset, "Challenge creation limit reached. Please wait.");
+    }
+
     let creatorId = session?.userId;
 
     if (!creatorId) {
-      // Fallback to demo citizen user if not logged in
+      // In production, reject unauthenticated challenge submissions
+      const isDemo = process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+      if (!isDemo) {
+        return NextResponse.json(
+          { error: "Authentication required to submit challenges.", code: "AUTH_REQUIRED" },
+          { status: 401 }
+        );
+      }
+
+      // Fallback to demo citizen user in demo mode
       const defaultCitizen = await db.user.findFirst({ where: { role: "CITIZEN" } });
       if (!defaultCitizen) {
         return NextResponse.json({ error: "Authentication required" }, { status: 401 });

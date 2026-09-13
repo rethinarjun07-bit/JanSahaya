@@ -1,17 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import db from "@/lib/db";
-
+import { hashPassword } from "@/lib/auth";
+import { SMSParseInputSchema } from "@/lib/validators";
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
+import crypto from "crypto";
 
 // Parses SMS like: "FLOOD RANCHI HIGH" or "MINING FIRE DHANBAD CRITICAL"
 // Also understands Hindi: "बाढ़ रांची गंभीर"
 export async function POST(request: NextRequest) {
   try {
-    const { smsText, phone } = await request.json();
-
-    if (!smsText?.trim()) {
-      return NextResponse.json({ error: "SMS text is required" }, { status: 400 });
+    // ── 1. Rate Limiting ────────────────────────────────────────────────────
+    const clientIp = getClientIp(request);
+    const rl = checkRateLimit(clientIp, RATE_LIMIT_BUCKETS.AI_ANON);
+    if (!rl.success) {
+      return createRateLimitResponse(rl.reset, "SMS intake rate limit exceeded. Please wait.");
     }
+
+    // ── 2. Input Validation ────────────────────────────────────────────────
+    const body = await request.json();
+    const valResult = SMSParseInputSchema.safeParse(body);
+    if (!valResult.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: valResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { smsText, phone } = valResult.data;
 
     let parsed: ParsedSMS;
 
@@ -29,13 +46,14 @@ export async function POST(request: NextRequest) {
       }, { status: 422 });
     }
 
-    // Find or create a SMS reporter user
+    // Find or create a SMS reporter user with unguessable bcrypt password
     let reporterUser = await db.user.findFirst({ where: { email: "sms-bot@jansahaya.in" } });
     if (!reporterUser) {
+      const secureRandomPassword = await hashPassword(crypto.randomBytes(32).toString("hex"));
       reporterUser = await db.user.create({
         data: {
           email: "sms-bot@jansahaya.in",
-          password: "SMS_BOT_NO_LOGIN",
+          password: secureRandomPassword,
           name: "SMS/WhatsApp Reporter",
           role: "CITIZEN",
           organization: "JanSahaya SMS Gateway",

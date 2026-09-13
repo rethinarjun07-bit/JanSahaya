@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import { generateToken } from "@/lib/auth";
+import { generateToken, AUTH_COOKIE_OPTIONS } from "@/lib/auth";
 import { DEMO_ALLOWED_ROLES } from "@/lib/rbac";
-
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60,
-};
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 const ROLE_EMAILS: Record<string, string> = {
   CITIZEN:  "citizen@demo.in",
@@ -19,7 +13,7 @@ const ROLE_EMAILS: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
-  // ── Security Gate: Demo mode must be explicitly enabled ──────────────────
+  // ── 1. Security Gate: Demo mode must be explicitly enabled ──────────────────
   if (process.env.DEMO_MODE !== "true") {
     return NextResponse.json(
       { error: "Quick login is disabled. Please use /login with your credentials.", code: "DEMO_MODE_DISABLED" },
@@ -27,11 +21,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // ── 2. Rate Limiting Check ──────────────────────────────────────────────────
+  const clientIp = getClientIp(request);
+  const rl = checkRateLimit(clientIp, RATE_LIMIT_BUCKETS.AUTH);
+  if (!rl.success) {
+    return createRateLimitResponse(rl.reset, "Too many login attempts. Please wait.");
+  }
+
   try {
     const { role } = await request.json();
     const roleKey = (role || "").toUpperCase();
 
-    // ── Security: Block ADMIN from quick-login ────────────────────────────
+    // ── 3. Security: Block ADMIN from quick-login ────────────────────────────
     if (!DEMO_ALLOWED_ROLES.includes(roleKey as "CITIZEN" | "SOLVER" | "INDUSTRY")) {
       return NextResponse.json(
         {
@@ -78,14 +79,13 @@ export async function POST(request: Request) {
         karmaPoints: user.karmaPoints,
         avatar: user.avatar,
       },
-      token,
     });
 
-    response.cookies.set("jansahaya_token", token, COOKIE_OPTIONS);
+    response.cookies.set("jansahaya_token", token, AUTH_COOKIE_OPTIONS);
 
     return response;
   } catch (error: unknown) {
-    console.error("Quick Login Error:", error);
+    safeLog.error("Quick Login Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

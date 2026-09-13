@@ -75,7 +75,7 @@ start_backend.bat
 ### 3. Production Deployment with PostgreSQL 16
 ```bash
 # Set your PostgreSQL connection string in .env:
-# DATABASE_URL="postgresql://postgres:password@localhost:5432/jansahaya?schema=public"
+# DATABASE_URL="postgresql://<db_user>:<db_password>@<db_host>:5432/<db_name>?schema=public"
 
 # Sync schema and generate client
 npx prisma db push
@@ -88,7 +88,7 @@ npm start
 ---
 
 ## 🔑 Demonstration Personas & 1-Click Role Switcher
-> **NOTICE**: All personas, organizations, and institutional affiliations listed below are **SIMULATED DEMONSTRATION IDENTITIES** created strictly for evaluating the platform workflows. They do not imply real-world partnerships, endorsements, or legal sponsorships.
+> **SECURITY NOTICE**: All personas, accounts, and credentials listed below are **SIMULATED DEMONSTRATION IDENTITIES** strictly for testing and hackathon evaluation. **Demo credentials — development/presentation only. Never use these credentials in production.**
 
 The login page (`/login`) features a **1-Click Persona Switcher** for instantaneous hackathon demonstration:
 
@@ -306,9 +306,9 @@ jansahaya/
 ## 📦 Environment Variables
 
 ```env
-# .env
+# .env (local development example)
 DATABASE_URL="file:./dev.db"
-JWT_SECRET="jansahaya-sih26043-secure-jwt-secret-key-2024"
+JWT_SECRET="<generate-a-secure-random-32-character-secret-in-production>"
 NEXT_PUBLIC_APP_NAME="JanSahaya"
 NEXT_PUBLIC_APP_TAGLINE="India's Societal Innovation Portal"
 ```

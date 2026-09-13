@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { getUserFromRequest } from "@/lib/auth";
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +72,15 @@ function validateMagicBytes(buffer: Buffer): boolean {
 export async function POST(request: Request) {
   try {
     const session = await getUserFromRequest(request);
+    const clientIp = getClientIp(request);
+    const identifier = session ? `user:${session.userId}` : `ip:${clientIp}`;
+
+    // ── Rate Limiting Check ────────────────────────────────────────────────
+    const rl = checkRateLimit(identifier, RATE_LIMIT_BUCKETS.UPLOAD);
+    if (!rl.success) {
+      return createRateLimitResponse(rl.reset, "Upload frequency limit exceeded. Please wait.");
+    }
+
     // In production, enforce authentication. In demo mode, allow intake for field testing.
     const isDemo = process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
     if (!session && !isDemo) {
@@ -123,7 +134,7 @@ export async function POST(request: Request) {
     }
 
     // 5. Secure Storage Path & Filename Generation (prevents directory traversal and overwrite)
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    const uploadDir = path.resolve(process.cwd(), "public", "uploads");
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -131,7 +142,12 @@ export async function POST(request: Request) {
     const randomSuffix = crypto.randomBytes(8).toString("hex");
     const sanitizedBase = path.basename(file.name, rawExt).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 30);
     const safeFilename = `${Date.now()}-${sanitizedBase}-${randomSuffix}${rawExt}`;
-    const filePath = path.join(uploadDir, safeFilename);
+    const filePath = path.resolve(uploadDir, safeFilename);
+
+    // Explicit path containment check (guarantees zero path traversal)
+    if (!filePath.startsWith(uploadDir)) {
+      return NextResponse.json({ error: "Invalid upload destination path." }, { status: 400 });
+    }
 
     fs.writeFileSync(filePath, buffer);
 
@@ -145,7 +161,7 @@ export async function POST(request: Request) {
       mimeType: file.type,
     });
   } catch (error: unknown) {
-    console.error("Secure Upload API Error:", error);
+    safeLog.error("Secure Upload API Error:", error);
     return NextResponse.json({ error: "Failed to securely process upload" }, { status: 500 });
   }
 }

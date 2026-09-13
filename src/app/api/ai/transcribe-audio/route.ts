@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { getUserFromRequest } from "@/lib/auth";
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 export const dynamic = "force-dynamic";
 
+const MAX_AUDIO_BYTES = 10 * 1024 * 1024; // 10MB limit
+
 export async function POST(request: NextRequest) {
   try {
+    // ── 1. Rate Limiting ────────────────────────────────────────────────────
+    const tokenUser = await getUserFromRequest(request);
+    const clientIp = getClientIp(request);
+    const bucket = tokenUser ? RATE_LIMIT_BUCKETS.AI_AUTHED : RATE_LIMIT_BUCKETS.AI_ANON;
+    const identifier = tokenUser ? `user:${tokenUser.userId}` : `ip:${clientIp}`;
+    const rl = checkRateLimit(identifier, bucket);
+
+    if (!rl.success) {
+      return createRateLimitResponse(rl.reset, "Transcription rate limit exceeded. Please wait.");
+    }
+
+    // ── 2. Payload Extraction & Size Check ─────────────────────────────────
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const language = (formData.get("language") as string) || "hi";
@@ -13,13 +30,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No audio file received" }, { status: 400 });
     }
 
+    if (file.size > MAX_AUDIO_BYTES) {
+      return NextResponse.json(
+        { error: `Audio file exceeds maximum allowed size of 10MB (size: ${(file.size / (1024 * 1024)).toFixed(1)}MB)` },
+        { status: 400 }
+      );
+    }
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const fileSizeKb = Math.round(buffer.length / 1024);
 
     const apiKey = (process.env.GEMINI_API_KEY || "").replace(/^["']|["']$/g, "").trim();
 
-    // 1. Try Gemini Multimodal Speech Transcription if API key is provided
+    // ── 3. Gemini Multimodal Speech Transcription (if configured) ───────────
     if (apiKey && !apiKey.includes("Demo-Replace") && !apiKey.includes("your_gemini")) {
       try {
         const client = new GoogleGenAI({ apiKey });
@@ -60,15 +84,15 @@ Provide ONLY the exact transcribed text with no conversational preamble or markd
           });
         }
       } catch (geminiErr) {
-        console.warn("Gemini audio transcription fallback triggered:", geminiErr);
+        safeLog.warn("Gemini audio transcription fallback triggered:", geminiErr);
       }
     }
 
-    // 2. High-Fidelity Domain-Aware Speech Generator for local/offline testing
+    // ── 4. Deterministic Domain-Aware Speech Generator for local/offline testing ──
     let transcribedText = "";
     if (language.startsWith("ur")) {
       transcribedText =
-        "ہمارے علاقے میں شدید بارش کے بعد نالے ابل پڑے ہیں اور زمین دھنسنے کا سنگین خطرہ پیدا ہو چکا ہے۔ قریبی آبادی کے راستے منقطع ہو گئے ہیں۔ براہ کرम فوری ڈیزاسٹر ریلیف اور نکاسی کی ٹیمیں روانہ کریں۔";
+        "ہمارے علاقے میں شدید بارش کے بعد نالے ابل پڑے ہیں اور زمین دھنسنے का سنگین خطرہ پیدا ہو चुका ہے۔ قریبی آبادی کے راستے منقطع ہو گئے ہیں۔ براہ کرम فوری ڈیزاسٹر ریلیف اور نکاسی کی ٹیمیں روانہ کریں۔";
     } else if (language.startsWith("hi")) {
       transcribedText =
         "हमारे क्षेत्र में भारी बारिश के कारण मुख्य नाला पूरी तरह अवरुद्ध हो गया है और जलभराव से सड़क पर 3 फीट पानी भर गया है। मकानों में दरारें आ रही हैं। कृपया तत्काल राहत एवं जल निकासी पंप की व्यवस्था की जाए।";
@@ -86,7 +110,7 @@ Provide ONLY the exact transcribed text with no conversational preamble or markd
       confidence: 0.92,
     });
   } catch (error: unknown) {
-    console.error("Transcribe Audio Route Error:", error);
+    safeLog.error("Transcribe Audio Route Error:", error);
     return NextResponse.json({ error: "Audio transcription failed" }, { status: 500 });
   }
 }

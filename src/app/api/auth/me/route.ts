@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
+import { safeLog } from "@/lib/safe-logger";
 
 export async function GET(request: Request) {
   try {
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error: unknown) {
-    console.error("Auth me error:", error);
+    safeLog.error("Auth me error:", error);
     return NextResponse.json({ user: null });
   }
 }

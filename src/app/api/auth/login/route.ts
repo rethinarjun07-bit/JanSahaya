@@ -1,19 +1,23 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import { verifyPassword, generateToken } from "@/lib/auth";
+import { verifyPassword, generateToken, AUTH_COOKIE_OPTIONS } from "@/lib/auth";
 import { LoginSchema } from "@/lib/validators";
-
-// Secure cookie options shared across auth routes
-const COOKIE_OPTIONS = {
-  httpOnly: true,       // Not accessible via JavaScript — prevents XSS token theft
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,  // Prevents CSRF
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60, // 7 days
-};
+import { getClientIp, checkRateLimit, createRateLimitResponse, RATE_LIMIT_BUCKETS } from "@/lib/rate-limiter";
+import { safeLog } from "@/lib/safe-logger";
 
 export async function POST(request: Request) {
   try {
+    // ── 1. Rate Limiting Check (Anti-Brute-Force) ───────────────────────────
+    const clientIp = getClientIp(request);
+    const rl = checkRateLimit(clientIp, RATE_LIMIT_BUCKETS.AUTH);
+    if (!rl.success) {
+      return createRateLimitResponse(
+        rl.reset,
+        "Too many login attempts from this IP. Please wait before retrying."
+      );
+    }
+
+    // ── 2. Request Validation ──────────────────────────────────────────────
     const body = await request.json();
     const result = LoginSchema.safeParse(body);
     if (!result.success) {
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
       where: { email: email.toLowerCase() },
     });
 
-    // Return same error for both invalid email and wrong password (prevent user enumeration)
+    // Uniform timing-safe error response (prevents user enumeration)
     if (!user) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
@@ -38,6 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
+    // ── 3. Secure Token Generation & Session Cookie ─────────────────────────
     const tokenPayload = {
       userId: user.id,
       email: user.email,
@@ -63,14 +68,13 @@ export async function POST(request: Request) {
         karmaPoints: user.karmaPoints,
         avatar: user.avatar,
       },
-      token,
     });
 
-    response.cookies.set("jansahaya_token", token, COOKIE_OPTIONS);
+    response.cookies.set("jansahaya_token", token, AUTH_COOKIE_OPTIONS);
 
     return response;
   } catch (error: unknown) {
-    console.error("Login API Error:", error);
+    safeLog.error("Login API Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
