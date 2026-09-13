@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   ShieldAlert,
   Flame,
@@ -109,10 +109,35 @@ export function HomeClient({
         </div>
       </PopItem>
 
-      {/* 2. Scenic Jharkhand-Inspired Warm Civic Hero */}
+      {/* 2. Jharkhand-Grounded Warm Civic Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#15291F] via-[#1A3D2F] to-[#244533] text-white py-20 md:py-28 px-4 sm:px-6 lg:px-8">
-        {/* Subtle Natural Canopy Contour Backdrop */}
-        <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:24px_24px]" />
+        {/* Jharkhand State Silhouette — low-opacity identity layer */}
+        <div className="absolute inset-0 flex items-center justify-end pr-8 md:pr-16 pointer-events-none overflow-hidden">
+          <svg
+            viewBox="0 0 340 380"
+            className="jh-state-silhouette absolute right-0 top-1/2 -translate-y-1/2 w-[380px] md:w-[480px] opacity-[0.055] select-none"
+            aria-hidden="true"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Approximate Jharkhand state outline — Chota Nagpur Plateau shape */}
+            <path d="M 168 12 L 198 18 L 228 10 L 256 22 L 278 14 L 298 30 L 310 52 L 320 78 L 318 106 L 330 128 L 328 154 L 316 172 L 308 196 L 318 218 L 314 244 L 296 262 L 278 270 L 258 284 L 240 298 L 220 312 L 202 328 L 182 338 L 162 340 L 142 326 L 122 310 L 104 294 L 88 274 L 74 256 L 62 236 L 52 212 L 44 188 L 40 162 L 36 136 L 38 110 L 44 86 L 54 64 L 68 44 L 86 28 L 108 16 L 132 10 L 152 10 Z" />
+          </svg>
+        </div>
+        {/* Chota Nagpur Plateau contour lines — organic horizontal depth */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <svg
+            viewBox="0 0 900 320"
+            className="jh-plateau-layer absolute bottom-0 left-0 right-0 w-full opacity-[0.04] select-none"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M 0 240 Q 120 190 240 210 Q 360 228 480 200 Q 600 172 720 195 Q 820 215 900 205 L 900 320 L 0 320 Z" fill="white" opacity="0.6" />
+            <path d="M 0 270 Q 100 248 220 260 Q 360 274 500 252 Q 640 232 760 248 Q 840 258 900 244 L 900 320 L 0 320 Z" fill="white" opacity="0.4" />
+            <path d="M 0 295 Q 200 280 380 288 Q 560 296 740 282 Q 830 276 900 282 L 900 320 L 0 320 Z" fill="white" opacity="0.25" />
+          </svg>
+        </div>
         <div className="absolute -bottom-24 left-0 right-0 h-48 bg-gradient-to-t from-[#FAF7F2] to-transparent pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10 text-center">
@@ -130,8 +155,11 @@ export function HomeClient({
           </PopItem>
 
           <PopItem delay={0.2}>
-            <p className="text-base sm:text-xl text-emerald-100/90 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+            <p className="text-base sm:text-xl text-emerald-100/90 max-w-3xl mx-auto mb-3 leading-relaxed font-normal">
               JanSahaya connects citizens, government, universities and industry to turn local problems into measurable impact.
+            </p>
+            <p className="text-sm text-emerald-200/50 mb-8 font-medium tracking-wide">
+              Built for Jharkhand. Powered by its people.
             </p>
           </PopItem>
 
@@ -207,7 +235,91 @@ export function HomeClient({
         </div>
       </section>
 
-      {/* 3. Quad-Helix Signature Interactive Component */}
+      {/* 3. Jharkhand Civic Pulse — District Activity Strip */}
+      <section className="py-12 bg-white border-b border-[#E8DFC8]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                <h2 className="text-base font-bold text-slate-900 font-serif">Jharkhand Civic Pulse</h2>
+              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
+                Platform Demo Data
+              </span>
+            </div>
+            <Link
+              href="/map"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#1A3D2F] hover:text-[#2D6A4F] transition-colors group"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Explore on GIS Map</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+            {([
+              { district: "Ranchi", icon: "🏛️", desc: "Capital · Urban Drainage", share: 0.28, urgency: "HIGH", color: "#C05621" },
+              { district: "Jamshedpur", icon: "🏭", desc: "Steel Belt · Industrial", share: 0.22, urgency: "MEDIUM", color: "#1A3D2F" },
+              { district: "Dhanbad", icon: "⛏️", desc: "Coalfields · Subsidence", share: 0.20, urgency: "CRITICAL", color: "#dc2626" },
+              { district: "Hazaribagh", icon: "🌲", desc: "Plateau · Groundwater", share: 0.16, urgency: "MEDIUM", color: "#1A3D2F" },
+              { district: "Deoghar", icon: "🕌", desc: "Santhal Pargana · Rural", share: 0.14, urgency: "LOW", color: "#059669" },
+            ] as const).map(({ district, icon, desc, share, urgency, color }, idx) => {
+              const count = Math.round(totalChallenges * share);
+              const barPct = Math.round(share * 100);
+              return (
+                <motion.div
+                  key={district}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  transition={{ duration: 0.3, delay: idx * 0.06 }}
+                  className="bg-[#FAF7F2] border border-[#E8DFC8] hover:border-[#1A3D2F] rounded-xl p-4 transition-all group cursor-default"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-base" aria-hidden="true">{icon}</span>
+                      <span className="text-xs font-bold text-slate-800">{district}</span>
+                    </div>
+                    <span
+                      className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider ${
+                        urgency === "CRITICAL"
+                          ? "bg-red-100 text-red-700"
+                          : urgency === "HIGH"
+                          ? "bg-amber-100 text-amber-800"
+                          : urgency === "LOW"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {urgency}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mb-3 leading-snug">{desc}</p>
+                  {/* Activity bar */}
+                  <div className="h-1.5 rounded-full bg-[#E8DFC8] overflow-hidden mb-2">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${barPct}%` }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.7, delay: 0.2 + idx * 0.08, ease: "easeOut" }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: color }}
+                    />
+                  </div>
+                  <div className="text-[10px] text-slate-500 flex items-center justify-between">
+                    <span><AnimatedCounter value={count} /> problems</span>
+                    <span className="font-semibold" style={{ color }}>{barPct}%</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Quad-Helix Signature Interactive Component */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <QuadHelix />
       </section>
@@ -538,6 +650,9 @@ export function HomeClient({
           <h2 className="text-3xl sm:text-4xl font-extrabold font-serif text-slate-900 mt-3 mb-2">
             "By the People. For the People."
           </h2>
+          <p className="text-xs text-[#1A3D2F] font-semibold mb-3 tracking-wide">
+            Starting from Jharkhand&apos;s villages, coalfields and cities.
+          </p>
           <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto mb-8 leading-relaxed">
             Every verified resolution begins with a citizen report. Log an on-ground problem in 60 seconds with photos, voice dictation, and GPS accuracy.
           </p>

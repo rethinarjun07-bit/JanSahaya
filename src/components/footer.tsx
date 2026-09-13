@@ -35,7 +35,7 @@ export function Footer() {
               <span>{t("portalName")}</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              An intelligent digital platform connecting citizens, government departments, premier universities, and industry CSR leaders to crowdsource and co-solve disaster management & societal challenges across India.
+              A bridge connecting citizens, government, universities and industry to turn local problems into measurable solutions &mdash; built for Jharkhand&apos;s 24 districts.
             </p>
             <div className="inline-block px-2.5 py-1 bg-slate-800 rounded-lg text-[11px] text-amber-300 font-semibold border border-slate-700">
               Smart India Hackathon SIH26043
@@ -113,6 +113,7 @@ export function Footer() {
         <div className="mt-12 pt-6 border-t border-slate-800 flex items-center justify-between flex-wrap gap-4 text-xs text-slate-500">
           <div>
             &copy; {new Date().getFullYear()} JanSahaya &bull; Department of Disaster Management, Govt. of Jharkhand.
+            <span className="ml-3 text-slate-600">Serving Jharkhand &bull; Chota Nagpur &bull; Santhal Pargana</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>WCAG 2.1 AA Compliant</span>

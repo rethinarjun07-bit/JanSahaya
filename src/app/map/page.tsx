@@ -74,7 +74,8 @@ export default async function FullScreenMapPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Pulsing pins depict real-time severity levels across all 24 Jharkhand districts & Indian states.
+                Pulsing pins depict real-time severity levels across all 24 Jharkhand districts &amp; Indian states.{" "}
+                <span className="text-slate-400">Chota Nagpur Plateau · Santhal Pargana · Damodar Valley</span>
               </p>
             </div>
           </div>
