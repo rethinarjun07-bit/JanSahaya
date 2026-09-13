@@ -124,6 +124,21 @@ export default function NewChallengePage() {
   const [bypassedWarning, setBypassedWarning] = useState(false);
   const [isSupportingExisting, setIsSupportingExisting] = useState(false);
 
+  // Pre-fill from Copilot URL query parameters if present
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const paramTitle = params.get("title");
+      const paramDesc = params.get("description");
+      const paramCat = params.get("category");
+      const paramDist = params.get("district");
+      if (paramTitle) setTitle(paramTitle);
+      if (paramDesc) setDescription(paramDesc);
+      if (paramCat) setCategory(paramCat);
+      if (paramDist) setDistrict(paramDist);
+    }
+  }, []);
+
   // Audio timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;

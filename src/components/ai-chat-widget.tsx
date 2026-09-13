@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   MessageCircle, X, Send, Bot, User, Loader2, Mic,
   MicOff, Phone, Copy, Check, RefreshCw, ChevronDown, Sparkles,
+  ArrowUpRight, AlertTriangle, ShieldCheck, MapPin, Activity, FileText
 } from "lucide-react";
+import { CopilotAction, CopilotCard } from "@/lib/copilot/types";
 
 interface Message {
   role: "user" | "model";
@@ -12,35 +15,44 @@ interface Message {
   timestamp: Date;
   isDemo?: boolean;
   lang?: string;
+  actions?: CopilotAction[];
+  card?: CopilotCard;
+  groundedSource?: string;
 }
 
 const QUICK_PROMPTS = [
-  { text: "What to do during a flood?", emoji: "🌊" },
-  { text: "बाढ़ में क्या करें?", emoji: "🇮🇳" },
-  { text: "Government compensation schemes", emoji: "💰" },
-  { text: "How to report a disaster?", emoji: "📋" },
-  { text: "Mining accident help", emoji: "⛏️" },
-  { text: "First aid tips", emoji: "💊" },
+  { text: "There is flooding near my village", emoji: "🌧️" },
+  { text: "What problems are active in Ranchi?", emoji: "📍" },
+  { text: "Where is my report?", emoji: "📊" },
+  { text: "Why is my problem high priority?", emoji: "🧠" },
+  { text: "What happens after verification?", emoji: "🏛️" },
+  { text: "Emergency Help 112", emoji: "🚨" },
 ];
 
 const TYPING_PHRASES = [
-  "Thinking...",
-  "Analyzing your query...",
-  "Looking up information...",
-  "Preparing response...",
+  "Checking JanSahaya data...",
+  "Querying local records...",
+  "Analyzing civic signals...",
+  "Preparing verified response...",
 ];
+
+const INITIAL_WELCOME: Message = {
+  role: "model",
+  text: `🙏 **Namaste! I'm JanSahaya AI.**\n\nI can help you report, understand and track civic & disaster problems across Jharkhand.\n\n**Try asking:**\n• "There is flooding near my village"\n• "Show problems in Ranchi"\n• "Where is my report?"\n• "Why is my problem high priority?"\n• "What should I do during a flood?"`,
+  timestamp: new Date(),
+  lang: "en",
+  actions: [
+    { label: "📝 Report Problem", url: "/challenges/new", variant: "primary" },
+    { label: "📍 Find Local Problems", prompt: "What problems are active in Ranchi?", variant: "outline" },
+    { label: "📊 Track My Report", prompt: "Where is my report?", variant: "outline" },
+    { label: "🚨 Emergency Help", prompt: "I need emergency guidance", variant: "danger" },
+  ],
+};
 
 export default function AIChatWidget() {
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "model",
-      text: "🙏 **Namaste!** I'm **JanSahaya AI** — your advanced disaster management assistant.\n\nI can help with:\n• Emergency steps (floods, earthquakes, fires)\n• Government compensation schemes\n• Health advice during disasters\n• How to report incidents on this platform\n\n_Ask me anything in **Hindi**, **English**, **Santali**, or **Bengali**!_",
-      timestamp: new Date(),
-      lang: "en",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([INITIAL_WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [typingPhrase, setTypingPhrase] = useState(TYPING_PHRASES[0]);
@@ -48,6 +60,10 @@ export default function AIChatWidget() {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Conversational memory references
+  const [previousIntent, setPreviousIntent] = useState<string | undefined>();
+  const [previousEntities, setPreviousEntities] = useState<Record<string, unknown> | undefined>();
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -73,11 +89,13 @@ export default function AIChatWidget() {
       typingInterval.current = setInterval(() => {
         i = (i + 1) % TYPING_PHRASES.length;
         setTypingPhrase(TYPING_PHRASES[i]);
-      }, 1500);
+      }, 1400);
     } else {
       if (typingInterval.current) clearInterval(typingInterval.current);
     }
-    return () => { if (typingInterval.current) clearInterval(typingInterval.current); };
+    return () => {
+      if (typingInterval.current) clearInterval(typingInterval.current);
+    };
   }, [loading]);
 
   // Track scroll for show-more button
@@ -95,21 +113,29 @@ export default function AIChatWidget() {
     const userMsg: Message = { role: "user", text, timestamp: new Date() };
     setMessages((prev) => [...prev, userMsg]);
 
-    // Get last 10 messages as history (excluding welcome message)
+    // Get last 8 messages as history (excluding welcome message)
     const history = messages
       .slice(1)
-      .slice(-10)
+      .slice(-8)
       .map((m) => ({ role: m.role, text: m.text }));
 
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history }),
+        body: JSON.stringify({
+          message: text,
+          history,
+          previousIntent,
+          previousEntities,
+        }),
       });
 
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
+
+      if (data.intent) setPreviousIntent(data.intent);
+      if (data.entities) setPreviousEntities(data.entities);
 
       const botMsg: Message = {
         role: "model",
@@ -117,6 +143,9 @@ export default function AIChatWidget() {
         timestamp: new Date(),
         isDemo: data.isDemo,
         lang: data.detectedLanguage,
+        actions: data.actions || [],
+        card: data.card,
+        groundedSource: data.groundedSource,
       };
       setMessages((prev) => [...prev, botMsg]);
 
@@ -130,6 +159,10 @@ export default function AIChatWidget() {
           text: "⚠️ Connection error. For emergencies call **112** immediately.\n\nSDMA Jharkhand: **0651-2446900**",
           timestamp: new Date(),
           isDemo: true,
+          actions: [
+            { label: "🚨 Call 112", url: "tel:112", variant: "danger" },
+            { label: "🗺️ Open GIS Map", url: "/map", variant: "outline" },
+          ],
         },
       ]);
     } finally {
@@ -149,7 +182,7 @@ export default function AIChatWidget() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      alert("Voice input requires Chrome browser. You can also type in Hindi.");
+      alert("Voice input requires Chrome browser. You can also type in Hindi or English.");
       return;
     }
 
@@ -181,7 +214,9 @@ export default function AIChatWidget() {
   };
 
   const clearChat = () => {
-    setMessages([messages[0]]); // Keep welcome message
+    setMessages([INITIAL_WELCOME]);
+    setPreviousIntent(undefined);
+    setPreviousEntities(undefined);
   };
 
   // Markdown-like text renderer
@@ -189,7 +224,7 @@ export default function AIChatWidget() {
     return text
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      .replace(/`(.*?)`/g, "<code class='bg-slate-100 px-1 rounded text-xs font-mono'>$1</code>")
+      .replace(/`(.*?)`/g, "<code class='bg-slate-100 px-1 py-0.5 rounded text-xs font-mono text-slate-800'>$1</code>")
       .replace(/\n/g, "<br/>")
       .replace(/•/g, "&#8226;");
   };
@@ -210,7 +245,7 @@ export default function AIChatWidget() {
         className={`fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 group ${
           open ? "bg-red-500 hover:bg-red-600 rotate-90 scale-110" : "bg-[#1a2e5a] hover:bg-[#223878] hover:scale-110"
         }`}
-        title="JanSahaya AI Assistant"
+        title="JanSahaya Civic Copilot"
       >
         {open ? (
           <X className="w-6 h-6 text-white" />
@@ -218,7 +253,7 @@ export default function AIChatWidget() {
           <>
             <MessageCircle className="w-6 h-6 text-white" />
             {/* Live indicator */}
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white animate-pulse" />
             {/* Unread badge */}
             {unreadCount > 0 && (
               <span className="absolute -top-2 -left-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white text-white text-[9px] font-bold flex items-center justify-center">
@@ -233,41 +268,51 @@ export default function AIChatWidget() {
       {open && (
         <div
           className="fixed bottom-24 right-6 z-[9998] flex flex-col bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transition-all duration-300"
-          style={{ width: "380px", height: minimized ? "72px" : "580px" }}
+          style={{ width: "390px", height: minimized ? "72px" : "600px" }}
         >
           {/* ── Header ── */}
-          <div className="bg-gradient-to-r from-[#1a2e5a] to-[#1e40af] px-4 py-3 flex items-center gap-3 shrink-0 cursor-pointer"
-            onClick={() => setMinimized(!minimized)}>
+          <div
+            className="bg-gradient-to-r from-[#1a2e5a] to-[#1e40af] px-4 py-3 flex items-center gap-3 shrink-0 cursor-pointer"
+            onClick={() => setMinimized(!minimized)}
+          >
             <div className="relative">
               <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
                 <Bot className="w-5 h-5 text-white" />
               </div>
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-[#1a2e5a]" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#1a2e5a]" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-white font-bold text-sm flex items-center gap-1.5">
                 JanSahaya AI
-                <Sparkles className="w-3 h-3 text-amber-400" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               </div>
               <div className="text-blue-200 text-[10px] truncate">
                 {loading ? (
-                  <span className="animate-pulse">{typingPhrase}</span>
+                  <span className="animate-pulse text-amber-300 font-medium">{typingPhrase}</span>
                 ) : (
-                  "Advanced AI • Jharkhand Disaster Management"
+                  "Civic Copilot • Jharkhand Disaster & Municipal Care"
                 )}
               </div>
             </div>
 
             {/* Quick action buttons */}
             <div className="flex items-center gap-1.5 ml-auto" onClick={(e) => e.stopPropagation()}>
-              <a href="tel:112" title="Call Emergency 112"
-                className="w-8 h-8 rounded-xl bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors"
-                onClick={(e) => e.stopPropagation()}>
+              <a
+                href="tel:112"
+                title="Call Emergency 112"
+                className="w-8 h-8 rounded-xl bg-red-500/90 hover:bg-red-500 flex items-center justify-center transition-colors shadow-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Phone className="w-3.5 h-3.5 text-white" />
               </a>
-              <button onClick={(e) => { e.stopPropagation(); clearChat(); }}
-                title="Clear chat"
-                className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearChat();
+                }}
+                title="Reset conversation"
+                className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              >
                 <RefreshCw className="w-3.5 h-3.5 text-white" />
               </button>
             </div>
@@ -275,52 +320,165 @@ export default function AIChatWidget() {
 
           {!minimized && (
             <>
-              {/* ── Messages ── */}
+              {/* ── Messages Container ── */}
               <div
                 ref={messagesRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto px-3 py-3 space-y-3 bg-gradient-to-b from-slate-50 to-white"
+                className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5 bg-gradient-to-b from-slate-50/80 to-white"
               >
                 {messages.map((msg, i) => (
-                  <div key={i} className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                  <div
+                    key={i}
+                    className={`flex gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                  >
                     {/* Avatar */}
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                      msg.role === "user" ? "bg-[#1a2e5a]" : "bg-gradient-to-br from-blue-100 to-indigo-100"
-                    }`}>
-                      {msg.role === "user"
-                        ? <User className="w-3.5 h-3.5 text-white" />
-                        : <Bot className="w-3.5 h-3.5 text-blue-700" />}
+                    <div
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                        msg.role === "user"
+                          ? "bg-[#1a2e5a]"
+                          : "bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200/50"
+                      }`}
+                    >
+                      {msg.role === "user" ? (
+                        <User className="w-3.5 h-3.5 text-white" />
+                      ) : (
+                        <Bot className="w-3.5 h-3.5 text-blue-700" />
+                      )}
                     </div>
 
-                    {/* Bubble */}
-                    <div className="flex flex-col max-w-[80%] gap-0.5">
-                      <div className={`px-3 py-2.5 rounded-2xl text-xs leading-relaxed relative group ${
-                        msg.role === "user"
-                          ? "bg-[#1a2e5a] text-white rounded-tr-sm"
-                          : "bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm"
-                      }`}>
+                    {/* Bubble + Content */}
+                    <div className="flex flex-col max-w-[84%] gap-1.5">
+                      <div
+                        className={`px-3.5 py-3 rounded-2xl text-xs leading-relaxed relative group ${
+                          msg.role === "user"
+                            ? "bg-[#1a2e5a] text-white rounded-tr-sm shadow-sm"
+                            : "bg-white border border-slate-200/90 text-slate-800 rounded-tl-sm shadow-sm"
+                        }`}
+                      >
                         <div dangerouslySetInnerHTML={{ __html: renderText(msg.text) }} />
 
-                        {/* Copy button — appears on hover */}
+                        {/* Optional Rich Card */}
+                        {msg.card && (
+                          <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] bg-slate-50/80 rounded-xl p-2.5 border">
+                            <div className="font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                              <span className="flex items-center gap-1">
+                                <Activity className="w-3.5 h-3.5 text-blue-600" />
+                                {msg.card.title}
+                              </span>
+                            </div>
+                            {msg.card.items && msg.card.items.length > 0 && (
+                              <div className="space-y-1">
+                                {msg.card.items.slice(0, 4).map((it, idx) => (
+                                  <div key={idx} className="flex items-center justify-between text-[10px]">
+                                    <span className="text-slate-500 font-medium">{it.label}</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-semibold text-slate-800 truncate max-w-[150px]">{it.value}</span>
+                                      {it.badge && (
+                                        <span
+                                          className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                                            it.badgeColor === "red"
+                                              ? "bg-red-100 text-red-700"
+                                              : it.badgeColor === "amber"
+                                              ? "bg-amber-100 text-amber-700"
+                                              : it.badgeColor === "green"
+                                              ? "bg-emerald-100 text-emerald-700"
+                                              : "bg-blue-100 text-blue-700"
+                                          }`}
+                                        >
+                                          {it.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Copy button */}
                         {msg.role === "model" && (
                           <button
                             onClick={() => copyMessage(msg.text, i)}
                             className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 w-5 h-5 bg-slate-100 hover:bg-slate-200 rounded-md flex items-center justify-center transition-all"
-                            title="Copy"
+                            title="Copy message"
                           >
-                            {copiedIdx === i
-                              ? <Check className="w-2.5 h-2.5 text-green-600" />
-                              : <Copy className="w-2.5 h-2.5 text-slate-500" />}
+                            {copiedIdx === i ? (
+                              <Check className="w-2.5 h-2.5 text-green-600" />
+                            ) : (
+                              <Copy className="w-2.5 h-2.5 text-slate-500" />
+                            )}
                           </button>
                         )}
                       </div>
 
-                      {/* Timestamp + demo badge */}
-                      <div className={`flex items-center gap-1 text-[9px] text-slate-400 ${
-                        msg.role === "user" ? "justify-end" : "justify-start"
-                      }`}>
+                      {/* Action buttons under model response */}
+                      {msg.actions && msg.actions.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {msg.actions.map((act, actIdx) => {
+                            const isExternal = act.url?.startsWith("tel:") || act.url?.startsWith("http");
+                            const baseClasses =
+                              "inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-semibold transition-all shadow-xs active:scale-95";
+                            const colorClasses =
+                              act.variant === "danger"
+                                ? "bg-red-500 hover:bg-red-600 text-white"
+                                : act.variant === "primary"
+                                ? "bg-[#1a2e5a] hover:bg-[#223878] text-white"
+                                : "bg-white hover:bg-blue-50 text-blue-700 border border-blue-200";
+
+                            if (act.url) {
+                              return isExternal ? (
+                                <a
+                                  key={actIdx}
+                                  href={act.url}
+                                  className={`${baseClasses} ${colorClasses}`}
+                                >
+                                  <span>{act.label}</span>
+                                  <ArrowUpRight className="w-3 h-3 opacity-70" />
+                                </a>
+                              ) : (
+                                <Link
+                                  key={actIdx}
+                                  href={act.url}
+                                  className={`${baseClasses} ${colorClasses}`}
+                                >
+                                  <span>{act.label}</span>
+                                  <ArrowUpRight className="w-3 h-3 opacity-70" />
+                                </Link>
+                              );
+                            }
+
+                            return (
+                              <button
+                                key={actIdx}
+                                onClick={() => act.prompt && sendMessage(act.prompt)}
+                                className={`${baseClasses} ${colorClasses}`}
+                              >
+                                <span>{act.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Timestamp + Grounded source indicator */}
+                      <div
+                        className={`flex items-center gap-1.5 text-[9px] text-slate-400 ${
+                          msg.role === "user" ? "justify-end" : "justify-start"
+                        }`}
+                      >
                         <span>{formatTime(msg.timestamp)}</span>
-                        {msg.isDemo && <span className="px-1 py-0.5 bg-amber-100 text-amber-600 rounded font-medium">demo</span>}
+                        {msg.groundedSource && (
+                          <span className="flex items-center gap-0.5 text-emerald-600 font-medium">
+                            <ShieldCheck className="w-2.5 h-2.5" />
+                            verified data
+                          </span>
+                        )}
+                        {msg.isDemo && (
+                          <span className="px-1 py-0.2 bg-slate-100 text-slate-500 rounded text-[8px]">
+                            offline mode
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -328,15 +486,16 @@ export default function AIChatWidget() {
 
                 {/* Typing indicator */}
                 {loading && (
-                  <div className="flex gap-2">
-                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center shrink-0">
+                  <div className="flex gap-2.5">
+                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200/50 flex items-center justify-center shrink-0">
                       <Bot className="w-3.5 h-3.5 text-blue-700" />
                     </div>
-                    <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <div className="bg-white border border-slate-200/90 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        <span className="text-[10px] text-slate-400 ml-2 animate-pulse">{typingPhrase}</span>
                       </div>
                     </div>
                   </div>
@@ -346,19 +505,24 @@ export default function AIChatWidget() {
 
               {/* Scroll to bottom button */}
               {showScrollBtn && (
-                <button onClick={scrollToBottom}
-                  className="absolute bottom-28 right-4 w-8 h-8 bg-white border border-slate-200 shadow-md rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors z-10">
+                <button
+                  onClick={scrollToBottom}
+                  className="absolute bottom-28 right-4 w-8 h-8 bg-white border border-slate-200 shadow-md rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors z-10"
+                >
                   <ChevronDown className="w-4 h-4 text-slate-600" />
                 </button>
               )}
 
-              {/* ── Quick Prompts ── */}
+              {/* ── Quick Prompts Strip ── */}
               <div className="px-3 py-2 bg-white border-t border-slate-100 overflow-x-auto">
                 <div className="flex gap-1.5" style={{ minWidth: "max-content" }}>
                   {QUICK_PROMPTS.map((p) => (
-                    <button key={p.text} onClick={() => sendMessage(p.text)}
+                    <button
+                      key={p.text}
+                      onClick={() => sendMessage(p.text)}
                       disabled={loading}
-                      className="shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 disabled:opacity-50 text-blue-700 border border-blue-200 rounded-xl transition-colors whitespace-nowrap">
+                      className="shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 bg-slate-50 hover:bg-blue-50 disabled:opacity-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-200 rounded-xl transition-colors whitespace-nowrap active:scale-95"
+                    >
                       <span>{p.emoji}</span> {p.text}
                     </button>
                   ))}
@@ -368,13 +532,15 @@ export default function AIChatWidget() {
               {/* ── Input Area ── */}
               <div className="px-3 pb-3 pt-2 bg-white flex gap-2 items-end">
                 {/* Voice button */}
-                <button onClick={toggleVoice}
-                  title={isRecording ? "Stop recording" : "Speak in Hindi/Santali"}
+                <button
+                  onClick={toggleVoice}
+                  title={isRecording ? "Stop recording" : "Speak in Hindi or English"}
                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0 ${
                     isRecording
                       ? "bg-red-500 text-white animate-pulse"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                  }`}>
+                  }`}
+                >
                   {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
 
@@ -386,26 +552,33 @@ export default function AIChatWidget() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
-                    placeholder={isRecording ? "🎙️ Listening..." : "Type in Hindi or English..."}
+                    placeholder={isRecording ? "🎙️ Listening..." : "Ask in Hindi, English or Hinglish..."}
                     disabled={loading}
                     className="w-full text-xs px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-60 bg-slate-50 focus:bg-white transition-colors"
                   />
                 </div>
 
                 {/* Send button */}
-                <button onClick={() => sendMessage(input)}
+                <button
+                  onClick={() => sendMessage(input)}
                   disabled={!input.trim() || loading}
-                  className="w-9 h-9 bg-[#1a2e5a] hover:bg-[#223878] disabled:opacity-40 text-white rounded-xl flex items-center justify-center transition-all shrink-0 hover:scale-105 active:scale-95">
-                  {loading
-                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <Send className="w-3.5 h-3.5" />}
+                  className="w-9 h-9 bg-[#1a2e5a] hover:bg-[#223878] disabled:opacity-40 text-white rounded-xl flex items-center justify-center transition-all shrink-0 hover:scale-105 active:scale-95 shadow-sm"
+                >
+                  {loading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
 
               {/* ── Footer ── */}
               <div className="px-4 pb-2 text-center">
                 <p className="text-[9px] text-slate-400">
-                  Powered by Google Gemini AI • JanSahaya SIH26043 • Emergency: <a href="tel:112" className="text-red-500 font-bold">112</a>
+                  JanSahaya Civic Copilot • Data Grounded • Emergency Helpline:{" "}
+                  <a href="tel:112" className="text-red-500 font-bold hover:underline">
+                    112
+                  </a>
                 </p>
               </div>
             </>
