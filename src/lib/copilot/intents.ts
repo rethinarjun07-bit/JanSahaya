@@ -126,21 +126,30 @@ export function classifyIntent(text: string, context?: CopilotContext): { intent
 
   // 1. EMERGENCY_GUIDANCE (Immediate life-safety)
   if (
-    lower.includes("injured") || lower.includes("chot") || lower.includes("bleeding") ||
-    lower.includes("khoon") || lower.includes("trapped") || lower.includes("phas gaye") ||
-    lower.includes("dying") || lower.includes("heart attack") || lower.includes("snake bite") ||
-    lower.includes("सांप") || lower.includes("घायल") || lower.includes("चोट") ||
-    (lower.includes("emergency") && (lower.includes("help") || lower.includes("112") || lower.includes("now")))
+    lower.includes("bleed") || lower.includes("khoon") || lower.includes("unconscious") ||
+    lower.includes("behosh") || lower.includes("behoshi") || lower.includes("can't breathe") ||
+    lower.includes("cant breathe") || lower.includes("saans nahi") || lower.includes("choking") ||
+    lower.includes("fire") || lower.includes("aag") || lower.includes("earthquake") ||
+    lower.includes("bhookamp") || lower.includes("bhukamp") || lower.includes("trapped") ||
+    lower.includes("phas gaye") || lower.includes("phas gaya") || lower.includes("accident") ||
+    lower.includes("severe injury") || lower.includes("injured") || lower.includes("chot") ||
+    lower.includes("building collapse") || lower.includes("collapsed") || lower.includes("gir gaya") ||
+    lower.includes("flood water entered") || lower.includes("pani ghar me") || lower.includes("pani ghus") ||
+    lower.includes("snake bite") || lower.includes("saamp") || lower.includes("dying") ||
+    lower.includes("heart attack") || lower.includes("सांप") || lower.includes("घायल") ||
+    lower.includes("चोट") || lower.includes("आग लग") || lower.includes("बेहोश") ||
+    (lower.includes("emergency") && (lower.includes("help") || lower.includes("112") || lower.includes("now") || lower.includes("madad")))
   ) {
-    return { intent: "EMERGENCY_GUIDANCE", confidence: 0.98 };
+    return { intent: "EMERGENCY_GUIDANCE", confidence: 0.99 };
   }
 
-  // 2. TRACK_MY_REPORT ("Where is my complaint?", "report status", "track my report")
+  // 2. TRACK_MY_REPORT ("Where is my complaint?", "report status", "track my report", "mera complaint kaha tak pahucha?")
   if (
     lower.includes("where is my") || lower.includes("track my") || lower.includes("track report") ||
     lower.includes("my report") || lower.includes("mera report") || lower.includes("meri shikayat") ||
     lower.includes("status of my") || lower.includes("complaint status") || lower.includes("kahan hai mera report") ||
-    lower.includes("report ka status") || lower.includes("shikayat ki sthiti") || lower.includes("status kya hai")
+    lower.includes("report ka status") || lower.includes("shikayat ki sthiti") || lower.includes("status kya hai") ||
+    lower.includes("kaha tak pahucha") || lower.includes("kahan tak pahucha") || lower.includes("mera complaint")
   ) {
     return { intent: "TRACK_MY_REPORT", confidence: 0.95 };
   }
@@ -155,19 +164,21 @@ export function classifyIntent(text: string, context?: CopilotContext): { intent
     return { intent: "EXPLAIN_AI_ANALYSIS", confidence: 0.96 };
   }
 
-  // 4. CHECK_DUPLICATE ("Is this already reported?", "Check duplicate")
+  // 4. CHECK_DUPLICATE ("Is this already reported?", "ye problem pehle kisi ne report ki hai?", "Check duplicate")
   if (
     lower.includes("already reported") || lower.includes("pehle se reported") || lower.includes("duplicate") ||
-    lower.includes("is this already") || lower.includes("kisi aur ne report") || lower.includes("similar problem")
+    lower.includes("is this already") || lower.includes("kisi aur ne report") || lower.includes("similar problem") ||
+    lower.includes("pehle kisi ne report ki") || lower.includes("pehle se darj")
   ) {
-    return { intent: "CHECK_DUPLICATE", confidence: 0.94 };
+    return { intent: "CHECK_DUPLICATE", confidence: 0.95 };
   }
 
-  // 5. EXPLAIN_JANSAHAYA / WORKFLOW ("What happens after I report?", "What happens after verification?", "platform workflow")
+  // 5. EXPLAIN_JANSAHAYA / WORKFLOW ("What happens after I report?", "how does jansahaya work?", "platform workflow")
   if (
     lower.includes("what happens after") || lower.includes("after verification") || lower.includes("after i report") ||
     lower.includes("how does jansahaya work") || lower.includes("platform workflow") || lower.includes("quad helix") ||
-    lower.includes("process kya hai") || lower.includes("report karne ke baad kya hota hai")
+    lower.includes("process kya hai") || lower.includes("report karne ke baad kya hota hai") ||
+    lower.includes("how jansahaya works") || lower.includes("jansahaya kaise kaam karta hai")
   ) {
     return { intent: "EXPLAIN_JANSAHAYA", confidence: 0.95 };
   }
@@ -189,12 +200,13 @@ export function classifyIntent(text: string, context?: CopilotContext): { intent
     return { intent: "UNIVERSITY_SOLVER_HELP", confidence: 0.93 };
   }
 
-  // 8. CSR_INDUSTRY_HELP ("Can CSR fund this?", "CSR funding", "Tata Steel CSR", "industry support")
+  // 8. CSR_INDUSTRY_HELP ("Can CSR fund this?", "CSR kaise help karega?", "CSR funding", "Tata Steel CSR", "industry support")
   if (
     lower.includes("csr") || lower.includes("fund this") || lower.includes("industry support") ||
-    lower.includes("tata steel") || lower.includes("coal india funding") || lower.includes("pledge")
+    lower.includes("tata steel") || lower.includes("coal india funding") || lower.includes("pledge") ||
+    lower.includes("csr kaise help") || lower.includes("company fund")
   ) {
-    return { intent: "CSR_INDUSTRY_HELP", confidence: 0.94 };
+    return { intent: "CSR_INDUSTRY_HELP", confidence: 0.95 };
   }
 
   // 9. GIS_LOCATION_EXPLORATION ("Where are critical issues?", "which district has most", "gis map", "show map")
@@ -206,7 +218,18 @@ export function classifyIntent(text: string, context?: CopilotContext): { intent
     return { intent: "GIS_LOCATION_EXPLORATION", confidence: 0.92 };
   }
 
-  // 10. FIND_LOCAL_PROBLEMS ("problems near me", "local problems", "near Ranchi", "aaspas ki samasya")
+  // 10. FIND_LOCAL_PROBLEMS / FIND_PROBLEMS ("ranchi me abhi kya problems hain?", "problems near me", "active challenges in...")
+  const hasDistrict = JHARKHAND_DISTRICTS.some(d => lower.includes(d.toLowerCase())) ||
+    Object.keys(HINDI_DISTRICT_MAP).some(k => t.includes(k));
+  if (
+    hasDistrict &&
+    (lower.includes("what problem") || lower.includes("problems") || lower.includes("active") ||
+     lower.includes("challenges") || lower.includes("kya samasya") || lower.includes("show") ||
+     lower.includes("dikhao") || lower.includes("kya problem") || lower.includes("abhi kya problems"))
+  ) {
+    return { intent: "FIND_PROBLEMS", confidence: 0.94 };
+  }
+
   if (
     lower.includes("near me") || lower.includes("local problems") || lower.includes("problems near") ||
     lower.includes("aaspas") || lower.includes("mere paas") || lower.includes("nearby issues")
@@ -214,35 +237,25 @@ export function classifyIntent(text: string, context?: CopilotContext): { intent
     return { intent: "FIND_LOCAL_PROBLEMS", confidence: 0.90 };
   }
 
-  // 11. FIND_PROBLEMS ("What problems are active in Ranchi?", "show flooding problems in Dhanbad", "active challenges in...")
-  const hasDistrict = JHARKHAND_DISTRICTS.some(d => lower.includes(d.toLowerCase())) ||
-    Object.keys(HINDI_DISTRICT_MAP).some(k => t.includes(k));
-  if (
-    hasDistrict &&
-    (lower.includes("what problem") || lower.includes("problems") || lower.includes("active") ||
-     lower.includes("challenges") || lower.includes("kya samasya") || lower.includes("show") || lower.includes("dikhao"))
-  ) {
-    return { intent: "FIND_PROBLEMS", confidence: 0.93 };
-  }
-
-  // 12. GOVERNMENT_SCHEME_GUIDANCE ("SDRF", "compensation", "yojana", "muawza", "pm relief", "crop loss")
+  // 11. GOVERNMENT_SCHEME_GUIDANCE ("SDRF", "compensation", "yojana", "muawza", "pm relief", "crop loss")
   if (
     lower.includes("scheme") || lower.includes("compensation") || lower.includes("sdrf") ||
     lower.includes("yojana") || lower.includes("muawza") || lower.includes("fasal bima") ||
-    lower.includes("pm relief") || lower.includes("मुआवज़ा") || lower.includes("योजना")
+    lower.includes("pm relief") || lower.includes("मुआवज़ा") || lower.includes("योजना") ||
+    lower.includes("government help") || lower.includes("govt scheme")
   ) {
     return { intent: "GOVERNMENT_SCHEME_GUIDANCE", confidence: 0.92 };
   }
 
-  // 13. REPORT_PROBLEM ("There is severe flooding near my village", "mere gaon mein pani bhar gaya hai", "broken bridge")
+  // 12. REPORT_PROBLEM ("There is severe flooding near my village", "mere gaon me pani bhar gaya hai", "broken bridge")
   if (
     lower.includes("there is") || lower.includes("severe") || lower.includes("flooding") ||
     lower.includes("pani bhar") || lower.includes("aa gaya") || lower.includes("report this") ||
     lower.includes("shikayat karni") || lower.includes("broken") || lower.includes("kharab hai") ||
     lower.includes("waterlogging") || lower.includes("leakage") || lower.includes("landslide") ||
-    lower.includes("road is") || lower.includes("bridge crack")
+    lower.includes("road is") || lower.includes("bridge crack") || lower.includes("sadak tooti")
   ) {
-    return { intent: "REPORT_PROBLEM", confidence: 0.91 };
+    return { intent: "REPORT_PROBLEM", confidence: 0.92 };
   }
 
   // Contextual continuation: if previous was REPORT_PROBLEM and user adds detail e.g. "It is affecting the main road" or "Can I report it?"
@@ -252,15 +265,17 @@ export function classifyIntent(text: string, context?: CopilotContext): { intent
     }
   }
 
-  // 14. GENERAL_CONVERSATION ("hello", "hi", "namaste", "thank you")
+  // 13. GENERAL_CONVERSATION ("hello", "hi", "namaste", "thank you", casual statements like "I like Sadie Sink", "how are you")
   if (
     /^(hi|hello|hey|namaste|pranam|namaskar|good morning|good evening|kaise ho|kese ho|shukriya|thanks|thank you)\b/i.test(t) ||
-    t === "hi" || t === "hello" || t === "नमस्ते" || t === "प्रणाम"
+    t === "hi" || t === "hello" || t === "नमस्ते" || t === "प्रणाम" ||
+    lower.startsWith("i like") || lower.startsWith("i love") || lower.includes("how are you") ||
+    lower.includes("tell me a joke") || lower.includes("who is your favorite")
   ) {
-    return { intent: "GENERAL_CONVERSATION", confidence: 0.96 };
+    return { intent: "GENERAL_CONVERSATION", confidence: 0.95 };
   }
 
-  // 15. GENERAL_JANSAHAYA_QUESTION ("Who made this?", "What is JanSahaya?")
+  // 14. GENERAL_JANSAHAYA_QUESTION ("Who made this?", "What is JanSahaya?")
   if (
     lower.includes("jansahaya") || lower.includes("who created") || lower.includes("who built") ||
     lower.includes("sih") || lower.includes("what can you do")
@@ -268,13 +283,13 @@ export function classifyIntent(text: string, context?: CopilotContext): { intent
     return { intent: "GENERAL_JANSAHAYA_QUESTION", confidence: 0.88 };
   }
 
-  // 16. Out-of-scope domain check (e.g. "capital of france", "who won world cup")
+  // 15. Out-of-scope general question check (e.g. "capital of france", "who is elon", etc.)
   if (
     lower.includes("capital of") || lower.includes("who is elon") || lower.includes("president of") ||
     lower.includes("recipe") || lower.includes("movie")
   ) {
-    return { intent: "UNKNOWN", confidence: 0.95 };
+    return { intent: "GENERAL_QUESTION", confidence: 0.95 };
   }
 
-  return { intent: "UNKNOWN", confidence: 0.5 };
+  return { intent: "GENERAL_CONVERSATION", confidence: 0.6 };
 }

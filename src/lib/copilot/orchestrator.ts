@@ -250,17 +250,92 @@ export async function processCopilotMessage(
     case "EMERGENCY_GUIDANCE": {
       groundedSource = "Verified Jharkhand Emergency Helplines";
       const contacts = getJharkhandEmergencyContacts();
+      const lowerText = text.toLowerCase();
 
-      if (isHindi) {
-        reply = `🚨 **आपातकालीन सहायता — तुरंत सुरक्षा पहली प्राथमिकता**\n\nयदि आप या कोई अन्य व्यक्ति घायल, खतरे में या फंसा हुआ है, तो तुरंत आपातकालीन सहायता लें:\n\n• **राष्ट्रीय आपातकालीन नंबर**: **112**\n• **एम्बुलेंस / चिकित्सा**: **108**\n• **झारखंड राज्य आपदा प्रबंधन (SDMA)**: **0651-2446900**\n• **NDRF रांची**: **0651-2290000**\n• **अग्निशमन (Fire)**: **101**\n\n⚠️ *जनसहाया AI आपातकालीन सेवाओं का विकल्प नहीं है। कृपया तुरंत 112 पर संपर्क करें।*`;
-      } else {
-        reply = `🚨 **Emergency Guidance — Safety First**\n\nIf you or someone nearby is injured, trapped, or in immediate danger, seek emergency response immediately:\n\n• **National Emergency / Police**: **112**\n• **Ambulance / Medical SOS**: **108**\n• **Jharkhand SDMA**: **0651-2446900**\n• **NDRF Battalion Ranchi**: **0651-2290000**\n• **Fire Emergency**: **101**\n\n⚠️ *JanSahaya AI cannot replace first responders or medical professionals. Call 112 right now if life or safety is threatened.*`;
+      // 1. Severe Bleeding / Trauma
+      if (lowerText.includes("bleed") || lowerText.includes("khoon") || lowerText.includes("severe injury") || lowerText.includes("cut")) {
+        if (isHindi) {
+          reply = `🚨 **आपातकाल — अत्यधिक रक्तस्राव (Severe Bleeding)**\n\nयदि रक्तस्राव तेज है या चक्कर आ रहे हैं, तो तुरंत आपातकालीन सेवाओं से संपर्क करें:\n📞 **एम्बुलेंस: 108 | राष्ट्रीय आपातकाल: 112**\n\nसहायता पहुँचने तक तुरंत यह करें:\n• साफ कपड़े, तौलिये या गॉज से घाव पर सीधा और मजबूत दबाव (Direct Firm Pressure) बनाए रखें।\n• कम से कम 5–10 मिनट तक लगातार दबाए रखें; देखने के लिए कपड़ा न हटाएं।\n• यदि हड्डी टूटने का संदेह न हो, तो घायल अंग को हृदय के स्तर से ऊपर उठाएं।\n• घाव में धंसी हुई किसी वस्तु को बाहर न निकालें — उसके चारों ओर दबाव बनाएं।\n• व्यक्ति को गर्म और शांत रखें ताकि शॉक (सदमे) से बचा जा सके।\n\n⚠️ *जनसहाया AI चिकित्सा पेशेवरों का विकल्प नहीं है। कृपया तुरंत 108 पर कॉल करें।*`;
+        } else {
+          reply = `🚨 **Emergency — Severe Bleeding & Trauma**\n\nIf bleeding is heavy or you feel faint, contact emergency services immediately:\n📞 **Ambulance: 108 | National Emergency: 112**\n\nUntil help arrives:\n• Apply direct, firm pressure on the wound with a clean cloth, towel, or sterile gauze.\n• Keep pressing continuously for at least 5–10 minutes without lifting to check.\n• Elevate the injured area above heart level if no fracture is suspected.\n• Do NOT pull out any embedded objects — pad firmly around them.\n• Keep the patient warm and calm to prevent traumatic shock.\n\n⚠️ *JanSahaya AI cannot replace medical professionals. Call 108 immediately.*`;
+        }
+        actions = [
+          { label: "🚑 Call Ambulance 108", url: "tel:108", variant: "danger" },
+          { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" }
+        ];
       }
-
-      actions = [
-        { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" },
-        { label: "🚑 Call Ambulance 108", url: "tel:108", variant: "danger" }
-      ];
+      // 2. Unconscious / Difficulty Breathing
+      else if (lowerText.includes("unconscious") || lowerText.includes("behosh") || lowerText.includes("can't breathe") || lowerText.includes("saans")) {
+        if (isHindi) {
+          reply = `🚨 **आपातकाल — बेहोशी / सांस लेने में गंभीर कठिनाई**\n\nतुरंत **108** या **112** पर कॉल करें।\n\nपैरामेडिक्स के पहुँचने तक:\n• जांचें कि क्या सीना ऊपर-नीचे हो रहा है (सांस चल रही है या नहीं)।\n• यदि सांस चल रही है: व्यक्ति को करवट के बल (Recovery Position) लिटाएं ताकि वायुमार्ग खुला रहे।\n• यदि सांस नहीं चल रही है: छाती के बीचों-बीच दोनों हाथों से लगातार जोर से दबाएं (CPR: 100–120 प्रति मिनट)।\n• गले के आसपास के कपड़े ढीले करें। बेहोश व्यक्ति को पानी या भोजन बिल्कुल न दें।\n\n⚠️ *तुरंत 108 पर कॉल करें।*`;
+        } else {
+          reply = `🚨 **Emergency — Unresponsive / Breathing Emergency**\n\nCall **108** or **112** immediately.\n\nUntil paramedics arrive:\n• Check for breathing: look for regular chest movement.\n• If breathing: Roll them onto their side into the Recovery Position to keep airway open.\n• If NOT breathing: Begin chest compressions (CPR) — push hard and fast in center of chest (100–120 bpm).\n• Loosen tight clothing around neck and chest. Never give food or liquids to an unconscious person.\n\n⚠️ *Call 108 right now for emergency medical dispatch.*`;
+        }
+        actions = [
+          { label: "🚑 Call Ambulance 108", url: "tel:108", variant: "danger" },
+          { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" }
+        ];
+      }
+      // 3. Fire / Toxic Gas
+      else if (lowerText.includes("fire") || lowerText.includes("aag") || lowerText.includes("smoke") || lowerText.includes("gas leak")) {
+        if (isHindi) {
+          reply = `🚨 **आपातकाल — आग और जहरीला धुआं (Active Fire)**\n\nतुरंत इमारत से बाहर निकलें! सामान के लिए न रुकें।\n📞 **अग्निशमन: 101 | राष्ट्रीय आपातकाल: 112**\n\nसुरक्षा नियम:\n• धुएं के नीचे झुककर रेंगें (Crawl Low) — साफ हवा फर्श के पास होती है।\n• दरवाजे खोलने से पहले हथेली के पिछले हिस्से से छुएं; यदि गर्म हो तो वह रास्ता न लें।\n• लिफ्ट का प्रयोग कभी न करें; केवल सीढ़ियों का उपयोग करें।\n• जलती हुई इमारत में वापस कभी न जाएं।`;
+        } else {
+          reply = `🚨 **Emergency — Active Fire & Toxic Smoke**\n\nEvacuate the structure immediately! Do NOT delay for personal belongings.\n📞 **Fire Brigade: 101 | Emergency: 112**\n\nImmediate safety steps:\n• Crawl low under smoke — breathable air stays closer to the ground.\n• Feel doors before opening; if warm, find an alternate exit.\n• Never use elevators during a fire; use fire escape stairwells.\n• Do NOT re-enter a burning building under any circumstance.`;
+        }
+        actions = [
+          { label: "🚒 Call Fire 101", url: "tel:101", variant: "danger" },
+          { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" }
+        ];
+      }
+      // 4. Trapped / Building Collapse
+      else if (lowerText.includes("trapped") || lowerText.includes("phas") || lowerText.includes("collapse") || lowerText.includes("gir gaya")) {
+        if (isHindi) {
+          reply = `🚨 **आपातकाल — मलबे में फंसे व्यक्ति / इमारत ढहना**\n\nतुरंत सहायता के लिए कॉल करें:\n📞 **112** | **NDRF रांची बटालियन: 0651-2290000**\n\nतुरंत ध्यान रखें:\n• शांत रहें और ऑक्सीजन बचाएं।\n• चेहरे और नाक को कपड़े से ढकें ताकि सीमेंट की धूल से बचा जा सके।\n• पाइपों या दीवारों पर धातु से थपथपाएं (Tap on pipes) ताकि रेस्क्यू टीम ध्वनिक सेंसर से आपको ढूंढ सके।\n• केवल तभी चिल्लाएं जब बचाव दल बिल्कुल पास सुनाई दे (चिल्लाने से ऑक्सीजन खत्म होती है)।\n• माचिस या खुली लौ कभी न जलाएं (गैस रिसाव का खतरा)।`;
+        } else {
+          reply = `🚨 **Emergency — Trapped / Structural Collapse**\n\nEmergency dispatch:\n📞 **112** | **NDRF Ranchi Battalion: 0651-2290000**\n\nUntil rescue teams arrive:\n• Stay calm and conserve oxygen and energy.\n• Cover mouth and nose with cloth to filter toxic concrete dust.\n• Tap rhythmically on pipes or solid walls so acoustic rescue sensors locate you.\n• Shout only when you hear rescuers nearby (shouting exhausts air and inhales dust).\n• Do NOT light matches or lighters (potential gas pipeline leaks).`;
+        }
+        actions = [
+          { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" },
+          { label: "📞 NDRF Ranchi", url: "tel:06512290000", variant: "danger" }
+        ];
+      }
+      // 5. Flood Water Entered House
+      else if (lowerText.includes("flood water entered") || lowerText.includes("pani ghar") || lowerText.includes("pani ghus")) {
+        if (isHindi) {
+          reply = `🚨 **आपातकाल — घर में तेजी से बाढ़ का पानी प्रवेश**\n\nसुरक्षा प्राथमिकता:\n📞 **112** | **झारखंड SDMA: 0651-2446900**\n\nतत्काल कदम:\n• तुरंत घर का मेन बिजली स्विच (MCB) और रसोई गैस सिलेंडर का रेगुलेटर बंद करें।\n• परिवार के सदस्यों और जरूरी दस्तावेजों के साथ तुरंत ऊपरी मंजिल या छत पर जाएं।\n• बहते पानी में चलने या गाड़ी चलाने की कोशिश न करें (6 इंच बहता पानी व्यक्ति को गिरा सकता है)।\n• छत से टॉर्च या चमकीले कपड़े से बचाव दल को संकेत दें।`;
+        } else {
+          reply = `🚨 **Emergency — Floodwater Inundation in House**\n\nDirect Helplines:\n📞 **112** | **Jharkhand SDMA: 0651-2446900**\n\nImmediate actions:\n• Switch off main electrical circuit breaker and close LPG cylinder valves immediately.\n• Move family, elderly, and essential medicine to highest floor or rooftop.\n• Never attempt to wade or drive through floodwaters (6 inches of flowing water can sweep an adult).\n• Signal rescuers from the roof using a bright cloth or flashlight.`;
+        }
+        actions = [
+          { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" },
+          { label: "🌊 SDMA Helpline", url: "tel:06512446900", variant: "danger" }
+        ];
+      }
+      // 6. Snake Bite
+      else if (lowerText.includes("snake") || lowerText.includes("saamp")) {
+        if (isHindi) {
+          reply = `🚨 **आपातकाल — सर्पदंश (Snake Bite Protocol)**\n\nएंटी-स्नेक वेनम (ASV) हेतु तुरंत **108** पर कॉल करें या नजदीकी सामुदायिक स्वास्थ्य केंद्र (CHC) पहुँचें।\n\nतुरंत क्या करें और क्या न करें:\n• व्यक्ति को शांत रखें; हलचल न करने दें (शांत रहने से जहर तेजी से नहीं फैलता)।\n• काटे गए अंग को पूरी तरह स्थिर और हृदय के स्तर से नीचे रखें।\n• सूजन आने से पहले अंगूठी, तंग कपड़े या जूते तुरंत उतार दें।\n• घाव पर चीरा न लगाएं, न ही जहर चूसने की कोशिश करें। कोई तंग धागा या पट्टी (Tourniquet) न बांधें।`;
+        } else {
+          reply = `🚨 **Emergency — Snake Bite Protocol**\n\nCall **108** immediately for Anti-Snake Venom (ASV) hospital dispatch.\n\nImmediate protocol:\n• Keep the patient calm and completely still to slow venom circulation.\n• Immobilize the bitten limb and keep it positioned below heart level.\n• Remove rings, watches, or restrictive footwear before tissue swelling starts.\n• Do NOT cut, burn, tourniquet, or attempt to suck venom. Rush to nearest Community Health Centre (CHC).`;
+        }
+        actions = [
+          { label: "🚑 Call Ambulance 108", url: "tel:108", variant: "danger" },
+          { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" }
+        ];
+      }
+      // 7. General Emergency Default
+      else {
+        if (isHindi) {
+          reply = `🚨 **आपातकालीन सहायता — तुरंत सुरक्षा पहली प्राथमिकता**\n\nयदि आप या कोई अन्य व्यक्ति घायल, खतरे में या फंसा हुआ है, तो तुरंत संपर्क करें:\n\n• **राष्ट्रीय आपातकालीन नंबर**: **112**\n• **एम्बुलेंस / चिकित्सा**: **108**\n• **झारखंड राज्य आपदा प्रबंधन (SDMA)**: **0651-2446900**\n• **NDRF रांची**: **0651-2290000**\n• **अग्निशमन (Fire)**: **101**\n\n⚠️ *जनसहाया AI आपातकालीन सेवाओं का विकल्प नहीं है। कृपया तुरंत 112 पर संपर्क करें।*`;
+        } else {
+          reply = `🚨 **Emergency Guidance — Safety First**\n\nIf you or someone nearby is injured, trapped, or in immediate danger, contact emergency responders immediately:\n\n• **National Emergency / Police**: **112**\n• **Ambulance / Medical SOS**: **108**\n• **Jharkhand SDMA**: **0651-2446900**\n• **NDRF Battalion Ranchi**: **0651-2290000**\n• **Fire Emergency**: **101**\n\n⚠️ *JanSahaya AI cannot replace first responders or medical professionals. Call 112 right now if life or safety is threatened.*`;
+        }
+        actions = [
+          { label: "🚨 Call 112 Now", url: "tel:112", variant: "danger" },
+          { label: "🚑 Call Ambulance 108", url: "tel:108", variant: "danger" }
+        ];
+      }
 
       card = {
         type: "emergency_banner",
@@ -374,7 +449,13 @@ export async function processCopilotMessage(
     }
 
     case "GENERAL_CONVERSATION": {
+      const lower = text.toLowerCase();
       const isGratitude = /thank|thanks|dhanyawad|shukriya|धन्यवाद|शुक्रिया/i.test(text);
+      const isCasualChitChat =
+        lower.startsWith("i like") || lower.startsWith("i love") || lower.includes("sadie sink") ||
+        lower.includes("actor") || lower.includes("actress") || lower.includes("movie") ||
+        lower.includes("music") || lower.includes("song") || lower.includes("joke");
+
       if (isGratitude) {
         reply = isHindi
           ? `🙏 आपका बहुत-बहुत धन्यवाद! झारखंड में नागरिक सुधार और जनसेवा में आपका सहयोग अमूल्य है। यदि आपको किसी अन्य समस्या की रिपोर्ट करनी हो या जानकारी चाहिए, तो मैं सदैव उपलब्ध हूँ।`
@@ -382,6 +463,14 @@ export async function processCopilotMessage(
         actions = [
           { label: "📝 Report Another Problem", url: "/challenges/new", variant: "primary" },
           { label: "🗺️ Open GIS Map", url: "/map", variant: "outline" }
+        ];
+      } else if (isCasualChitChat) {
+        reply = isHindi
+          ? `हाहा, बहुत बढ़िया 😄\nमैं मुख्य रूप से जनसहाया नागरिक सहायता और आपदा प्रबंधन के लिए यहाँ हूँ, पर आपसे बातचीत करके अच्छा लगा। यदि आपको झारखंड में किसी स्थानीय समस्या, आपदा या रिपोर्ट में मदद चाहिए, तो बस मुझे बताएं!`
+          : `Haha, fair enough 😄\nI'm mainly here for JanSahaya civic and disaster support, but I'm happy to chat briefly. If you need help with a civic problem, disaster situation, report, or local issue, just tell me what's happening.`;
+        actions = [
+          { label: "📝 Report Civic Problem", url: "/challenges/new", variant: "primary" },
+          { label: "📍 Ranchi Civic Pulse", prompt: "What problems are active in Ranchi?", variant: "outline" }
         ];
       } else if (isHindi) {
         reply = `🙏 नमस्ते! मैं **जनसहाया AI** हूँ।\n\nझारखंड में किसी नागरिक समस्या, आपदा रिपोर्टिंग या शिकायत ट्रैकिंग में आज मैं आपकी क्या सहायता कर सकता हूँ?`;
@@ -416,14 +505,15 @@ export async function processCopilotMessage(
     }
 
     default: {
-      // UNKNOWN or Out of Scope
+      const lower = text.toLowerCase();
+      // Out of Scope / General Question
       if (isHindi) {
-        reply = `ℹ️ मैं मुख्य रूप से **जनसहाया नागरिक और आपदा प्रबंधन** कार्यों (समस्या रिपोर्टिंग, ट्रैकिंग, समाधान और जीआईएस विश्लेषण) के लिए डिज़ाइन किया गया हूँ।\n\nइस विषय पर मेरे पास सत्यापित जनसहाया डेटा नहीं है। क्या आप झारखंड में किसी नागरिक समस्या या आपदा की जांच करना चाहते हैं?`;
+        reply = `दिलचस्प सवाल! वैसे मैं मुख्य रूप से झारखंड की नागरिक समस्याओं, आपदा प्रबंधन और स्थानीय रिपोर्टिंग में मदद करता हूँ। क्या आपके क्षेत्र में कोई ऐसी समस्या है जिसे आप ट्रैक या रिपोर्ट करना चाहते हैं?`;
       } else {
-        if (text.toLowerCase().includes("france") || text.toLowerCase().includes("paris")) {
-          reply = `Paris is the capital of France. However, as **JanSahaya AI**, my core purpose is assisting with civic challenges, disaster management, and community reports across Jharkhand.`;
+        if (lower.includes("france") || lower.includes("paris")) {
+          reply = `Paris is the capital of France! 🇫🇷\nWhile I know general trivia, my superpower is helping you report, track, and solve civic and disaster challenges across Jharkhand. Let me know if you need assistance with any local problem!`;
         } else {
-          reply = `I am specifically designed for **JanSahaya civic and disaster management** tasks in Jharkhand. I do not have verified platform data for this query.`;
+          reply = `Interesting point! While I enjoy chatting, my core expertise is resolving civic challenges, disaster distress, and community tracking across Jharkhand. If there's an issue in your village or city you'd like to address, I'm right here.`;
         }
       }
 
@@ -440,7 +530,7 @@ export async function processCopilotMessage(
   const apiKey = (process.env.GEMINI_API_KEY || "").replace(/^["']|["']$/g, "").trim();
   const hasGemini = Boolean(apiKey && !apiKey.includes("Demo-Replace"));
 
-  if (hasGemini && (intent === "GENERAL_CONVERSATION" || intent === "UNKNOWN" || text.split(/\s+/).length > 12)) {
+  if (hasGemini && (intent === "GENERAL_CONVERSATION" || intent === "UNKNOWN" || intent === "GENERAL_QUESTION" || text.split(/\s+/).length > 10)) {
     try {
       const aiClient = new GoogleGenAI({ apiKey });
       const contents = [
@@ -451,7 +541,7 @@ export async function processCopilotMessage(
         {
           role: "user" as const,
           parts: [{
-            text: `[SYSTEM CONTEXT: Verified JanSahaya ground truth facts:\n${reply}\nDetected intent: ${intent}]\nUser query: "${text}"\nProvide a warm, concise response (maximum 3 sentences) grounded strictly in the provided JanSahaya facts. NEVER repeat generic introductory lists.`
+            text: `[SYSTEM: You are JanSahaya Civic Copilot. Be warm, natural, human, and concise. Never say rigid robotic disclaimers like "I am specifically designed for JanSahaya". If the user is chatting casually (e.g. mentions an actor, hobby, like "I like Sadie Sink"), respond naturally and charmingly in 1-2 sentences, and smoothly offer to help if they ever have a civic problem or disaster alert in Jharkhand. If they asked a civic or data question, ground your answer strictly in these facts:\n${reply}]\nUser query: "${text}"`
           }]
         }
       ];

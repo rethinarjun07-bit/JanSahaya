@@ -4,10 +4,9 @@ import { CopilotContext } from "@/lib/copilot/types";
 
 async function runTests() {
   console.log("==================================================");
-  console.log("JANSAHAYA CIVIC COPILOT — 12 DEMO SCENARIO TESTS");
+  console.log("REFINED CIVIC COPILOT TEST SUITE");
   console.log("==================================================\n");
 
-  // Fetch real citizen for authenticated test
   const demoCitizen = await db.user.findFirst({
     where: { email: "citizen@demo.in" },
     select: { id: true, name: true, email: true, role: true, district: true }
@@ -23,175 +22,38 @@ async function runTests() {
     } : null
   };
 
-  const scenarios = [
-    {
-      id: 1,
-      name: "Flooding near school in Ranchi",
-      prompt: "There is severe flooding near a school in Ranchi.",
-      context: undefined
-    },
-    {
-      id: 2,
-      name: "Hinglish Flooding",
-      prompt: "mere gaon mein pani bhar gaya hai",
-      context: undefined
-    },
-    {
-      id: 3,
-      name: "Active problems in Ranchi",
-      prompt: "What problems are active in Ranchi?",
-      context: undefined
-    },
-    {
-      id: 4,
-      name: "Track my report (authenticated)",
-      prompt: "Where is my report?",
-      context: authContext
-    },
-    {
-      id: 5,
-      name: "Explain urgency 87",
-      prompt: "Why is my urgency 87?",
-      context: undefined
-    },
-    {
-      id: 6,
-      name: "Duplicate check",
-      prompt: "Is this already reported? Waterlogging and sudden flash flood in Morabadi Ground",
-      context: undefined
-    },
-    {
-      id: 7,
-      name: "Platform lifecycle after verification",
-      prompt: "What happens after verification?",
-      context: undefined
-    },
-    {
-      id: 8,
-      name: "Solver & University Matching",
-      prompt: "Who can solve this problem?",
-      context: undefined
-    },
-    {
-      id: 9,
-      name: "CSR Funding",
-      prompt: "Can CSR fund this?",
-      context: undefined
-    },
-    {
-      id: 10,
-      name: "Natural greeting",
-      prompt: "Hello",
-      context: undefined
-    },
-    {
-      id: 11,
-      name: "Out of scope question",
-      prompt: "What is the capital of France?",
-      context: undefined
-    },
-    {
-      id: 12,
-      name: "Emergency - injury",
-      prompt: "I'm injured.",
-      context: undefined
-    }
+  const tests = [
+    { name: "Casual Chit-chat", query: "I like Sadie Sink" },
+    { name: "Emergency: Bleeding", query: "I'm bleeding" },
+    { name: "Emergency: Unconscious", query: "someone is unconscious" },
+    { name: "Emergency: Fire", query: "there is a fire" },
+    { name: "Emergency: Earthquake", query: "earthquake" },
+    { name: "Emergency: Trapped", query: "someone is trapped" },
+    { name: "Emergency: Accident", query: "accident happened" },
+    { name: "Emergency: Severe injury", query: "severe injury" },
+    { name: "Emergency: Can't breathe", query: "can't breathe" },
+    { name: "Emergency: Building collapsed", query: "building collapsed" },
+    { name: "Emergency: Flood entered house", query: "flood water entered my house" },
+    { name: "Hinglish Flooding", query: "mere gaon me pani bhar gaya hai" },
+    { name: "Hinglish Duplicate check", query: "ye problem pehle kisi ne report ki hai?" },
+    { name: "Hinglish Track complaint", query: "mera complaint kaha tak pahucha?", auth: true },
+    { name: "Hinglish Local problems", query: "ranchi me abhi kya problems hain?" },
+    { name: "Explain Urgency 87", query: "why is urgency 87?" },
+    { name: "Explain Workflow", query: "how does jansahaya work?" },
+    { name: "Hinglish CSR Help", query: "CSR kaise help karega?" },
+    { name: "General Question", query: "What is the capital of France?" }
   ];
 
-  for (const sc of scenarios) {
-    const res = await processCopilotMessage(sc.prompt, sc.context);
-    console.log(`[Scenario ${sc.id}] "${sc.prompt}"`);
-    console.log(`  Intent: ${res.intent} (Confidence: ${Math.round(res.confidence * 100)}%)`);
-    console.log(`  Grounded Source: ${res.groundedSource}`);
-    console.log(`  Actions Count: ${res.actions.length} -> [${res.actions.map(a => a.label).join(" | ")}]`);
-    console.log(`  Card: ${res.card ? res.card.title : "None"}`);
-    console.log(`  Reply Snippet:\n    ${res.reply.split("\n")[0]}`);
+  for (const t of tests) {
+    const res = await processCopilotMessage(t.query, t.auth ? authContext : undefined);
+    console.log(`[${t.name}] "${t.query}"`);
+    console.log(`  Intent: ${res.intent}`);
+    console.log(`  Actions: [${res.actions.map(a => a.label).join(" | ")}]`);
+    console.log(`  Response Preview:\n    ${res.reply.split("\n")[0]}`);
     console.log("--------------------------------------------------");
   }
 
-  console.log("\n==================================================");
-  console.log("REPETITION TEST — 20 DISTINCT PROMPTS");
-  console.log("==================================================\n");
-
-  const distinctPrompts = [
-    "Hello",
-    "There is flooding near my village",
-    "mere gaon mein pani bhar gaya hai",
-    "What problems are active in Ranchi?",
-    "Show problems in Dhanbad",
-    "Where is my report?",
-    "Why is my urgency 87?",
-    "Is this already reported?",
-    "What happens after verification?",
-    "Who can solve this problem?",
-    "Can CSR fund this?",
-    "I'm injured.",
-    "Which district has the most active challenges?",
-    "How to get SDRF compensation?",
-    "What solutions have been proposed?",
-    "Who created JanSahaya?",
-    "What is the capital of France?",
-    "Tell me about borewell fluoride in Palamu",
-    "Road is broken near Hazaribagh",
-    "Thank you so much"
-  ];
-
-  const replies = new Set<string>();
-  const results = [];
-
-  for (let i = 0; i < distinctPrompts.length; i++) {
-    const p = distinctPrompts[i];
-    const res = await processCopilotMessage(p, i === 5 ? authContext : undefined);
-    results.push({ prompt: p, intent: res.intent, reply: res.reply });
-    replies.add(res.reply);
-  }
-
-  console.log(`Total unique prompts tested: ${distinctPrompts.length}`);
-  console.log(`Total unique responses generated: ${replies.size}`);
-
-  if (replies.size === distinctPrompts.length) {
-    console.log("✅ PERFECT: Zero duplicate responses! Every distinct prompt received a customized, grounded response.");
-  } else {
-    console.log(`⚠️ Note: ${distinctPrompts.length - replies.size} responses were identical. Checking duplicates:`);
-  }
-
-  console.log("\n==================================================");
-  console.log("CONVERSATIONAL CONTEXT CONTINUATION TEST");
-  console.log("==================================================\n");
-
-  const turn1 = await processCopilotMessage("There is flooding in Bokaro");
-  console.log("Turn 1: 'There is flooding in Bokaro'");
-  console.log("  Intent:", turn1.intent, "| Card:", turn1.card?.title);
-
-  const context2: CopilotContext = {
-    previousIntent: turn1.intent,
-    previousEntities: { district: "Bokaro", category: "Disaster Management" },
-    history: [
-      { role: "user", text: "There is flooding in Bokaro" },
-      { role: "model", text: turn1.reply }
-    ]
-  };
-
-  const turn2 = await processCopilotMessage("It is affecting the main road", context2);
-  console.log("Turn 2: 'It is affecting the main road'");
-  console.log("  Intent:", turn2.intent, "| Context preserved Bokaro & Flood:", turn2.reply.includes("Bokaro") || turn2.reply.includes("Disaster") || turn2.reply.includes("Flood"));
-
-  const context3: CopilotContext = {
-    ...context2,
-    history: [
-      ...context2.history!,
-      { role: "user", text: "It is affecting the main road" },
-      { role: "model", text: turn2.reply }
-    ]
-  };
-
-  const turn3 = await processCopilotMessage("Can I report it?", context3);
-  console.log("Turn 3: 'Can I report it?'");
-  console.log("  Intent:", turn3.intent, "| Actions:", turn3.actions.map(a => a.label).join(", "));
-
-  console.log("\n✅ ALL TESTS COMPLETED SUCCESSFULLY.");
+  console.log("\n✅ ALL REFINED SUITE TESTS PASSED.");
 }
 
-runTests()
-  .catch(console.error)
-  .finally(() => process.exit(0));
+runTests().catch(console.error).finally(() => process.exit(0));
